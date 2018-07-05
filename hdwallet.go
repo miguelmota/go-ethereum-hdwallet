@@ -47,6 +47,7 @@ func New(config *Config) (*Wallet, error) {
 	var err error
 	var masterKey *hdkeychain.ExtendedKey
 	var key *hdkeychain.ExtendedKey
+	// TODO: use https://github.com/ethereum/go-ethereum/blob/ef0edc6e32d98d2fca54076f38cb317f43704900/accounts/hd.go#L67
 	for _, part := range parts {
 		p := strings.Split(part, "'")
 		n := p[0]
