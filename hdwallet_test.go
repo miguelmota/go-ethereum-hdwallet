@@ -6,6 +6,8 @@ import (
 	"testing"
 )
 
+// TODO: tests
+
 func TestNew(t *testing.T) {
 	mnemonic := "tag volcano eight thank tide danger coast health above argue embrace heavy"
 	/*
@@ -31,4 +33,16 @@ func TestNew(t *testing.T) {
 	fmt.Println(wallet.AddressHex())
 	fmt.Println("")
 	fmt.Println(wallet.Path())
+
+	wal, err := wallet.Derive(0)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(wal.PrivateKeyHex())
+	fmt.Println("")
+	fmt.Println(wal.PublicKeyHex())
+	fmt.Println("")
+	fmt.Println(wal.AddressHex())
+	fmt.Println("")
+	fmt.Println(wal.Path())
 }
