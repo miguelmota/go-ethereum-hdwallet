@@ -8,7 +8,7 @@ import (
 
 func TestNew(t *testing.T) {
 	mnemonic := "tag volcano eight thank tide danger coast health above argue embrace heavy"
-	root, err := New(Config{
+	root, err := New(&Config{
 		Mnemonic: mnemonic,
 		Path:     "m/44'/60'/0'/0",
 	})

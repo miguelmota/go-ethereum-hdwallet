@@ -8,7 +8,7 @@ import (
 
 func main() {
 	mnemonic := "tag volcano eight thank tide danger coast health above argue embrace heavy"
-	root, _ := hdwallet.New(hdwallet.Config{
+	root, _ := hdwallet.New(&hdwallet.Config{
 		Mnemonic: mnemonic,
 		Path:     `m/44'/60'/0'/0`,
 	})

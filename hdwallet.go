@@ -33,9 +33,13 @@ type Config struct {
 }
 
 // New ...
-func New(config Config) (*Wallet, error) {
+func New(config *Config) (*Wallet, error) {
 	if config.Path == "" {
 		config.Path = `m/44'/60'/0'/0`
+	}
+
+	if config.Mnemonic == "" {
+		return nil, errors.New("mnemonic is required")
 	}
 
 	seed := bip39.NewSeed(config.Mnemonic, "")
