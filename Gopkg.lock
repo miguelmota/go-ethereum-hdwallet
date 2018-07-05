@@ -3,6 +3,18 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/FactomProject/basen"
+  packages = ["."]
+  revision = "fe3947df716ebfda9847eb1b9a48f9592e06478c"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/FactomProject/btcutilecc"
+  packages = ["."]
+  revision = "d3a63a5752ecf3fbc06bd97365da752111c263df"
+
+[[projects]]
+  branch = "master"
   name = "github.com/btcsuite/btcd"
   packages = [
     "btcec",
@@ -39,6 +51,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/tyler-smith/go-bip32"
+  packages = ["."]
+  revision = "2c9cfd17756470a0b7c3e4b7954bae7d11035504"
+
+[[projects]]
+  branch = "master"
   name = "github.com/tyler-smith/go-bip39"
   packages = ["."]
   revision = "52158e4697b87de16ed390e1bdaf813e581008fa"
@@ -55,6 +73,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "1835004d90a11df297dcdec95954701dd5ac5a5fcb0a171f392b8ff4bc533eb1"
+  inputs-digest = "e4d09c833c4e21257cbf69438114f2c6b1a7d3f61f1f38bd2a12b580a35379f6"
   solver-name = "gps-cdcl"
   solver-version = 1

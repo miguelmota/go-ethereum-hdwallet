@@ -12,6 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/tyler-smith/go-bip32"
 	"github.com/tyler-smith/go-bip39"
 )
 
@@ -101,12 +102,22 @@ func (s Wallet) Derive(index interface{}) (*Wallet, error) {
 		idx = uint32(v)
 	case int16:
 		idx = uint32(v)
+	case int32:
+		idx = uint32(v)
+	case int64:
+		idx = uint32(v)
 	case uint:
 		idx = uint32(v)
 	case uint8:
 		idx = uint32(v)
 	case uint16:
 		idx = uint32(v)
+	case uint32:
+		idx = v
+	case uint64:
+		idx = uint32(v)
+	default:
+		return nil, errors.New("unsupported index type")
 	}
 
 	address, err := s.extendedKey.Child(idx)
@@ -208,4 +219,9 @@ func NewMnemonic() (string, error) {
 		return "", err
 	}
 	return bip39.NewMnemonic(entropy)
+}
+
+// NewSeed ...
+func NewSeed() ([]byte, error) {
+	return bip32.NewSeed()
 }
