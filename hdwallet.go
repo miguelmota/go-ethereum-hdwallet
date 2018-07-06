@@ -4,11 +4,10 @@ import (
 	"crypto/ecdsa"
 	"errors"
 	"fmt"
-	"strconv"
-	"strings"
 
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcutil/hdkeychain"
+	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -43,31 +42,20 @@ func New(config *Config) (*Wallet, error) {
 	}
 
 	seed := bip39.NewSeed(config.Mnemonic, "")
-	parts := strings.Split(config.Path, "/")
-	var err error
-	var masterKey *hdkeychain.ExtendedKey
-	var key *hdkeychain.ExtendedKey
-	// TODO: use https://github.com/ethereum/go-ethereum/blob/ef0edc6e32d98d2fca54076f38cb317f43704900/accounts/hd.go#L67
-	for _, part := range parts {
-		p := strings.Split(part, "'")
-		n := p[0]
-		h := (len(p) == 2)
+	dpath, err := accounts.ParseDerivationPath(config.Path)
+	if err != nil {
+		return nil, err
+	}
 
-		if n == "m" {
-			masterKey, err = hdkeychain.NewMaster(seed, &chaincfg.MainNetParams)
-			if err != nil {
-				return nil, err
-			}
-			key = masterKey
-			continue
-		}
+	masterKey, err := hdkeychain.NewMaster(seed, &chaincfg.MainNetParams)
+	if err != nil {
+		return nil, err
+	}
 
-		u64, err := strconv.ParseUint(n, 10, 32)
-		if err != nil {
-			return nil, err
-		}
+	key := masterKey
 
-		key, err = newChild(key, uint32(u64), h)
+	for _, n := range dpath {
+		key, err = key.Child(n)
 		if err != nil {
 			return nil, err
 		}
@@ -203,18 +191,6 @@ func (s Wallet) Path() string {
 // Mnemonic ...
 func (s Wallet) Mnemonic() string {
 	return s.mnemonic
-}
-
-func newChild(key *hdkeychain.ExtendedKey, n uint32, hardened bool) (*hdkeychain.ExtendedKey, error) {
-	if key == nil {
-		return nil, errors.New("key is nil")
-	}
-
-	if hardened {
-		n = hdkeychain.HardenedKeyStart + n
-	}
-
-	return key.Child(n)
 }
 
 // NewMnemonic ...
