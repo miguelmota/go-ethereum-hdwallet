@@ -1,6 +1,10 @@
 .PHONY: all
 all: build
 
+.PHONY: install
+install:
+	@go get -u github.com/miguelmota/go-ethereum-hdwallet
+
 .PHONY: build
 build:
 	@go build . -o bin/hdwallet
