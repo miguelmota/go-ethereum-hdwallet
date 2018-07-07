@@ -1,8 +1,6 @@
 # go-ethereum-hdwallet
 
-> Ethereum HD Wallet derivations from mnemonic in Go (golang)
-
-Note: This is a WIP. Although it's working, I'm going to implement the `Wallet` interface from go-ethereum which will break the current API.
+> Ethereum HD Wallet derivations from mnemonic in Go (golang). Implements the [go-ethereum](https://github.com/ethereum/go-ethereum) [`accounts.Wallet`](https://github.com/ethereum/go-ethereum/blob/master/accounts/accounts.go) interface.
 
 ## Install
 
