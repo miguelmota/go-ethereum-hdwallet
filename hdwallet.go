@@ -116,6 +116,22 @@ func (w *Wallet) Contains(account accounts.Account) bool {
 	return exists
 }
 
+// Unpin unpins account from list of pinned accounts.
+func (w *Wallet) Unpin(account accounts.Account) error {
+	w.stateLock.RLock()
+	defer w.stateLock.RUnlock()
+
+	for i, acct := range w.accounts {
+		if acct.Address.String() == account.Address.String() {
+			w.accounts = removeAtIndex(w.accounts, i)
+			delete(w.paths, account.Address)
+			return nil
+		}
+	}
+
+	return errors.New("account not found")
+}
+
 // Derive implements accounts.Wallet, deriving a new account at the specific
 // derivation path. If pin is set to true, the account will be added to the list
 // of tracked accounts.
@@ -346,7 +362,7 @@ func NewSeed() ([]byte, error) {
 	return bip32.NewSeed()
 }
 
-// NewSeedFromMnemonic ...
+// NewSeedFromMnemonic returns a BIP-39 seed based on a BIP-39 mnemonic.
 func NewSeedFromMnemonic(mnemonic string) ([]byte, error) {
 	if mnemonic == "" {
 		return nil, errors.New("mnemonic is required")
@@ -357,7 +373,7 @@ func NewSeedFromMnemonic(mnemonic string) ([]byte, error) {
 	return seed, nil
 }
 
-// DerivePrivateKey derives the private key of the derivation path
+// DerivePrivateKey derives the private key of the derivation path.
 func (w *Wallet) derivePrivateKey(path accounts.DerivationPath) (*ecdsa.PrivateKey, error) {
 	var err error
 	key := w.masterKey
@@ -377,7 +393,7 @@ func (w *Wallet) derivePrivateKey(path accounts.DerivationPath) (*ecdsa.PrivateK
 	return privateKeyECDSA, nil
 }
 
-// DerivePublicKey derives the public key of the derivation path
+// DerivePublicKey derives the public key of the derivation path.
 func (w *Wallet) derivePublicKey(path accounts.DerivationPath) (*ecdsa.PublicKey, error) {
 	privateKeyECDSA, err := w.derivePrivateKey(path)
 	if err != nil {
@@ -393,7 +409,7 @@ func (w *Wallet) derivePublicKey(path accounts.DerivationPath) (*ecdsa.PublicKey
 	return publicKeyECDSA, nil
 }
 
-// DeriveAddress derives the account address of the derivation path
+// DeriveAddress derives the account address of the derivation path.
 func (w *Wallet) deriveAddress(path accounts.DerivationPath) (common.Address, error) {
 	publicKeyECDSA, err := w.derivePublicKey(path)
 	if err != nil {
@@ -402,4 +418,9 @@ func (w *Wallet) deriveAddress(path accounts.DerivationPath) (common.Address, er
 
 	address := crypto.PubkeyToAddress(*publicKeyECDSA)
 	return address, nil
+}
+
+// removeAtIndex removes an account at index.
+func removeAtIndex(accts []accounts.Account, index int) []accounts.Account {
+	return append(accts[:index], accts[index+1:]...)
 }

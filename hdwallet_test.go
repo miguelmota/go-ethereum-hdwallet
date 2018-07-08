@@ -1,6 +1,7 @@
 package hdwallet
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -47,6 +48,19 @@ func TestWallet(t *testing.T) {
 
 	if len(wallet.Accounts()) != 1 {
 		t.Error("expected 1")
+	}
+
+	if !wallet.Contains(account) {
+		t.Error("expected to contain account")
+	}
+
+	err = wallet.Unpin(account)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if wallet.Contains(account) {
+		t.Error("expected to not contain account")
 	}
 
 	url := wallet.URL()
@@ -127,5 +141,33 @@ func TestWallet(t *testing.T) {
 
 	if account.Address.Hex() != "0xC49926C4124cEe1cbA0Ea94Ea31a6c12318df947" {
 		t.Error("wrong address")
+	}
+
+	seed, err = NewSeed()
+	if err != nil {
+		t.Error(err)
+	}
+
+	if len(seed) != 256 {
+		t.Error("expected size of 256")
+	}
+
+	seed, err = NewSeedFromMnemonic(mnemonic)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if len(seed) != 64 {
+		t.Error("expected size of 64")
+	}
+
+	mnemonic, err = NewMnemonic()
+	if err != nil {
+		t.Error(err)
+	}
+
+	words := strings.Split(mnemonic, " ")
+	if len(words) != 12 {
+		t.Error("expected 12 words")
 	}
 }

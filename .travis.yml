@@ -6,5 +6,4 @@ go:
   - "master"
 
 script:
-  - make deps/fix
   - make test
