@@ -83,23 +83,27 @@ func NewFromSeed(seed []byte) (*Wallet, error) {
 	return newWallet(seed)
 }
 
-// URL implements accounts.Wallet, returning the URL of the device that the wallet is on, however this does nothing since this is not a hardware device.
+// URL implements accounts.Wallet, returning the URL of the device that
+// the wallet is on, however this does nothing since this is not a hardware device.
 func (w *Wallet) URL() accounts.URL {
 	return w.url
 }
 
-// Status implements accounts.Wallet, returning a custom status message from the
-// underlying vendor-specific hardware wallet implementation, however this does nothing since this is not a hardware device.
+// Status implements accounts.Wallet, returning a custom status message
+// from the underlying vendor-specific hardware wallet implementation,
+// however this does nothing since this is not a hardware device.
 func (w *Wallet) Status() (string, error) {
 	return "ok", nil
 }
 
-// Open implements accounts.Wallet, however this does nothing since this is not a hardware device.
+// Open implements accounts.Wallet, however this does nothing since this
+// is not a hardware device.
 func (w *Wallet) Open(passphrase string) error {
 	return nil
 }
 
-// Close implements accounts.Wallet, however this does nothing since this is not a hardware device.
+// Close implements accounts.Wallet, however this does nothing since this
+// is not a hardware device.
 func (w *Wallet) Close() error {
 	return nil
 }
@@ -203,8 +207,18 @@ func (w *Wallet) SelfDerive(base accounts.DerivationPath, chain ethereum.ChainSt
 
 // SignHash implements accounts.Wallet, which allows signing arbitrary data.
 func (w *Wallet) SignHash(account accounts.Account, hash []byte) ([]byte, error) {
-	return nil, nil
+	// Make sure the requested account is contained within
+	path, ok := w.paths[account.Address]
+	if !ok {
+		return nil, accounts.ErrUnknownAccount
+	}
 
+	privateKey, err := w.derivePrivateKey(path)
+	if err != nil {
+		return nil, err
+	}
+
+	return crypto.Sign(hash, privateKey)
 }
 
 // SignTx implements accounts.Wallet, which allows the account to sign an Ethereum transaction.
@@ -242,9 +256,11 @@ func (w *Wallet) SignTx(account accounts.Account, tx *types.Transaction, chainID
 	return signedTx, nil
 }
 
-// SignHashWithPassphrase implements accounts.Wallet, which signs a hash.
+// SignHashWithPassphrase implements accounts.Wallet, attempting
+// to sign the given hash with the given account using the
+// passphrase as extra authentication.
 func (w *Wallet) SignHashWithPassphrase(account accounts.Account, passphrase string, hash []byte) ([]byte, error) {
-	return nil, nil
+	return w.SignHash(account, hash)
 }
 
 // SignTxWithPassphrase implements accounts.Wallet, attempting to sign the given
@@ -359,7 +375,8 @@ func ParseDerivationPath(path string) (accounts.DerivationPath, error) {
 	return accounts.ParseDerivationPath(path)
 }
 
-// MustParseDerivationPath parses the derivation path in string format into []uint32 but will panic if it can't parse it.
+// MustParseDerivationPath parses the derivation path in string format into
+// []uint32 but will panic if it can't parse it.
 func MustParseDerivationPath(path string) accounts.DerivationPath {
 	parsed, err := accounts.ParseDerivationPath(path)
 	if err != nil {

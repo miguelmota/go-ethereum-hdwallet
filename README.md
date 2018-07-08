@@ -87,7 +87,6 @@ func main() {
 	var data []byte
 
 	tx := types.NewTransaction(nonce, toAddress, value, gasLimit, gasPrice, data)
-
 	signedTx, err := wallet.SignTx(account, tx, nil)
 	if err != nil {
 		log.Fatal(err)

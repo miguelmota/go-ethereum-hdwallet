@@ -6,7 +6,9 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 )
 
 // TODO: table test
@@ -139,6 +141,35 @@ func TestWallet(t *testing.T) {
 	}
 	if s.Cmp(big.NewInt(0)) != 1 {
 		t.Error("expected s value")
+	}
+
+	signedTx2, err := wallet.SignTxWithPassphrase(account, "", tx, nil)
+	if err != nil {
+		t.Error(err)
+	}
+	if signedTx.Hash() != signedTx2.Hash() {
+		t.Error("expected match")
+	}
+
+	data = []byte("hello")
+	hash := crypto.Keccak256Hash(data)
+	sig, err := wallet.SignHash(account, hash.Bytes())
+	if err != nil {
+		t.Error(err)
+	}
+	if len(sig) == 0 {
+		t.Error("expected signature")
+	}
+
+	sig2, err := wallet.SignHashWithPassphrase(account, "", hash.Bytes())
+	if err != nil {
+		t.Error(err)
+	}
+	if len(sig2) == 0 {
+		t.Error("expected signature")
+	}
+	if hexutil.Encode(sig) != hexutil.Encode(sig2) {
+		t.Error("expected match")
 	}
 
 	err = wallet.Unpin(account)
