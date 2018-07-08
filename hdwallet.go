@@ -264,14 +264,6 @@ func (w *Wallet) SignTxWithPassphrase(account accounts.Account, passphrase strin
 	return w.SignTx(account, tx, chainID)
 }
 
-// Mnemonic returns the wallet's mnemonic, if using a mnemonic as a seed.
-func (w *Wallet) Mnemonic() (string, error) {
-	if w.mnemonic == "" {
-		return "", errors.New("this wallet is not using a mnemonic")
-	}
-	return w.mnemonic, nil
-}
-
 // PrivateKey returns the ECDSA private key of the account.
 func (w *Wallet) PrivateKey(account accounts.Account) (*ecdsa.PrivateKey, error) {
 	path, err := ParseDerivationPath(account.URL.Path)

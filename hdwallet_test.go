@@ -20,15 +20,6 @@ func TestWallet(t *testing.T) {
 		t.Error(err)
 	}
 
-	walletmnemonic, err := wallet.Mnemonic()
-	if err != nil {
-		t.Error(err)
-	}
-
-	if walletmnemonic != mnemonic {
-		t.Error("wrong mnemonic")
-	}
-
 	path, err := ParseDerivationPath("m/44'/60'/0'/0/0")
 	if err != nil {
 		t.Error(err)
