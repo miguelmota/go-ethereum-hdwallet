@@ -19,4 +19,4 @@ deps/cp:
 
 .PHONY: example
 example:
-	@go run -v example/example.go
+	@go run example/example.go

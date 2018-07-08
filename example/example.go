@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	//"github.com/miguelmota/go-ethereum-hdwallet"
-	hdwallet ".."
+	"github.com/miguelmota/go-ethereum-hdwallet"
 )
 
 func main() {
@@ -29,5 +28,5 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Println(account.Address.Hex()) // 0xC49926C4124cEe1cbA0Ea94Ea31a6c12318df947
+	fmt.Println(account.Address.Hex()) // 0x8230645aC28A4EdD1b0B53E7Cd8019744E9dD559
 }
