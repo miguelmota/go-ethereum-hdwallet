@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"math/big"
 
@@ -19,12 +18,10 @@ func main() {
 	}
 
 	path := hdwallet.MustParseDerivationPath("m/44'/60'/0'/0/0")
-	account, err := wallet.Derive(path, false)
+	account, err := wallet.Derive(path, true)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	fmt.Println(account.Address.Hex()) // 0xC49926C4124cEe1cbA0Ea94Ea31a6c12318df947
 
 	nonce := uint64(0)
 	value := big.NewInt(1000000000000000000)
@@ -37,7 +34,7 @@ func main() {
 
 	signedTx, err := wallet.SignTx(account, tx, nil)
 	if err != nil {
-		log.Fatal(signedTx)
+		log.Fatal(err)
 	}
 
 	spew.Dump(signedTx)
