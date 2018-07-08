@@ -1,8 +1,12 @@
 package hdwallet
 
 import (
+	"math/big"
 	"strings"
 	"testing"
+
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 )
 
 // TODO: table test
@@ -52,15 +56,6 @@ func TestWallet(t *testing.T) {
 
 	if !wallet.Contains(account) {
 		t.Error("expected to contain account")
-	}
-
-	err = wallet.Unpin(account)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if wallet.Contains(account) {
-		t.Error("expected to not contain account")
 	}
 
 	url := wallet.URL()
@@ -119,6 +114,40 @@ func TestWallet(t *testing.T) {
 
 	if addressHex != "0xC49926C4124cEe1cbA0Ea94Ea31a6c12318df947" {
 		t.Error("wrong address")
+	}
+
+	nonce := uint64(0)
+	value := big.NewInt(1000000000000000000)
+	toAddress := common.HexToAddress("0x0")
+	gasLimit := uint64(21000)
+	gasPrice := big.NewInt(21000000000)
+	data := []byte{}
+
+	tx := types.NewTransaction(nonce, toAddress, value, gasLimit, gasPrice, data)
+
+	signedTx, err := wallet.SignTx(account, tx, nil)
+	if err != nil {
+		t.Error(err)
+	}
+
+	v, r, s := signedTx.RawSignatureValues()
+	if v.Cmp(big.NewInt(0)) != 1 {
+		t.Error("expected v value")
+	}
+	if r.Cmp(big.NewInt(0)) != 1 {
+		t.Error("expected r value")
+	}
+	if s.Cmp(big.NewInt(0)) != 1 {
+		t.Error("expected s value")
+	}
+
+	err = wallet.Unpin(account)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if wallet.Contains(account) {
+		t.Error("expected to not contain account")
 	}
 
 	// seed test

@@ -3,6 +3,7 @@ package hdwallet
 import (
 	"crypto/ecdsa"
 	"errors"
+	"fmt"
 	"math/big"
 	"sync"
 
@@ -53,6 +54,7 @@ func NewFromMnemonic(mnemonic string) (*Wallet, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	wallet, err := newWallet(seed)
 	if err != nil {
 		return nil, err
@@ -206,22 +208,31 @@ func (w *Wallet) SignTx(account accounts.Account, tx *types.Transaction, chainID
 		return nil, accounts.ErrUnknownAccount
 	}
 
+	privateKey, err := w.derivePrivateKey(path)
+	if err != nil {
+		return nil, err
+	}
+
 	// Sign the transaction and verify the sender to avoid hardware fault surprises
-	/*
-		sender, signed, err := w.signTx(path, tx, chainID)
-		if err != nil {
-			return nil, err
-		}
-		if sender != account.Address {
-			return nil, fmt.Errorf("signer mismatch: expected %s, got %s", account.Address.Hex(), sender.Hex())
-		}
-		return signed, nil
-	*/
-	_ = path
-	return nil, nil
+	signedTx, err := types.SignTx(tx, types.HomesteadSigner{}, privateKey)
+	if err != nil {
+		return nil, err
+	}
+
+	msg, err := signedTx.AsMessage(types.HomesteadSigner{})
+	if err != nil {
+		return nil, err
+	}
+
+	sender := msg.From()
+	if sender != account.Address {
+		return nil, fmt.Errorf("signer mismatch: expected %s, got %s", account.Address.Hex(), sender.Hex())
+	}
+
+	return signedTx, nil
 }
 
-// SignHashWithPassphrase implements accounts.Wallet, with signs a hash.
+// SignHashWithPassphrase implements accounts.Wallet, which signs a hash.
 func (w *Wallet) SignHashWithPassphrase(account accounts.Account, passphrase string, hash []byte) ([]byte, error) {
 	return nil, nil
 }
