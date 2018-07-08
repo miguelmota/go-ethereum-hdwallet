@@ -208,8 +208,8 @@ func TestWallet(t *testing.T) {
 		t.Error(err)
 	}
 
-	if len(seed) != 256 {
-		t.Error("expected size of 256")
+	if len(seed) != 64 {
+		t.Error("expected size of 64")
 	}
 
 	seed, err = NewSeedFromMnemonic(mnemonic)
@@ -221,7 +221,7 @@ func TestWallet(t *testing.T) {
 		t.Error("expected size of 64")
 	}
 
-	mnemonic, err = NewMnemonic()
+	mnemonic, err = NewMnemonic(128)
 	if err != nil {
 		t.Error(err)
 	}

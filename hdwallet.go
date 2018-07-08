@@ -2,6 +2,7 @@ package hdwallet
 
 import (
 	"crypto/ecdsa"
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"math/big"
@@ -15,7 +16,6 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/tyler-smith/go-bip32"
 	"github.com/tyler-smith/go-bip39"
 )
 
@@ -58,6 +58,10 @@ func newWallet(seed []byte) (*Wallet, error) {
 func NewFromMnemonic(mnemonic string) (*Wallet, error) {
 	if mnemonic == "" {
 		return nil, errors.New("mnemonic is required")
+	}
+
+	if !bip39.IsMnemonicValid(mnemonic) {
+		return nil, errors.New("mnemonic is invalid")
 	}
 
 	seed, err := NewSeedFromMnemonic(mnemonic)
@@ -377,9 +381,9 @@ func MustParseDerivationPath(path string) accounts.DerivationPath {
 	return parsed
 }
 
-// NewMnemonic returns a randomly generated BIP-39 mnemonic.
-func NewMnemonic() (string, error) {
-	entropy, err := bip39.NewEntropy(128)
+// NewMnemonic returns a randomly generated BIP-39 mnemonic using 128-256 bits of entropy.
+func NewMnemonic(bits int) (string, error) {
+	entropy, err := bip39.NewEntropy(bits)
 	if err != nil {
 		return "", err
 	}
@@ -388,7 +392,9 @@ func NewMnemonic() (string, error) {
 
 // NewSeed returns a randomly generated BIP-39 seed.
 func NewSeed() ([]byte, error) {
-	return bip32.NewSeed()
+	b := make([]byte, 64)
+	_, err := rand.Read(b)
+	return b, err
 }
 
 // NewSeedFromMnemonic returns a BIP-39 seed based on a BIP-39 mnemonic.
@@ -397,9 +403,7 @@ func NewSeedFromMnemonic(mnemonic string) ([]byte, error) {
 		return nil, errors.New("mnemonic is required")
 	}
 
-	seed := bip39.NewSeed(mnemonic, "")
-
-	return seed, nil
+	return bip39.NewSeedWithErrorChecking(mnemonic, "")
 }
 
 // DerivePrivateKey derives the private key of the derivation path.
