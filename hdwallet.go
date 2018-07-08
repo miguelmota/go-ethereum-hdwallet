@@ -193,16 +193,7 @@ func (w *Wallet) Derive(path accounts.DerivationPath, pin bool) (accounts.Accoun
 // explicitly pin to the wallet manually. To avoid chain head monitoring, self
 // derivation only runs during account listing (and even then throttled).
 func (w *Wallet) SelfDerive(base accounts.DerivationPath, chain ethereum.ChainStateReader) {
-	/*
-		w.stateLock.Lock()
-		defer w.stateLock.Unlock()
-
-		w.deriveNextPath = make(accounts.DerivationPath, len(base))
-		copy(w.deriveNextPath[:], base[:])
-
-		w.deriveNextAddr = common.Address{}
-		w.deriveChain = chain
-	*/
+	// TODO: self derivation
 }
 
 // SignHash implements accounts.Wallet, which allows signing arbitrary data.
