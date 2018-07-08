@@ -18,7 +18,7 @@ import (
 	"github.com/tyler-smith/go-bip39"
 )
 
-// Wallet ...
+// Wallet is the underlying wallet struct.
 type Wallet struct {
 	mnemonic  string
 	masterKey *hdkeychain.ExtendedKey
@@ -29,47 +29,65 @@ type Wallet struct {
 	stateLock sync.RWMutex
 }
 
-// NewFromMnemonic ...
-func NewFromMnemonic(mnemonic string) (*Wallet, error) {
-	if mnemonic == "" {
-		return nil, errors.New("mnemonic is required")
-	}
-
-	seed := bip39.NewSeed(mnemonic, "")
-
+func newWallet(seed []byte) (*Wallet, error) {
 	masterKey, err := hdkeychain.NewMaster(seed, &chaincfg.MainNetParams)
 	if err != nil {
 		return nil, err
 	}
 
-	wallet := &Wallet{
-		mnemonic:  mnemonic,
-		seed:      seed,
+	return &Wallet{
 		masterKey: masterKey,
+		seed:      seed,
 		accounts:  []accounts.Account{},
 		paths:     map[common.Address]accounts.DerivationPath{},
+	}, nil
+}
+
+// NewFromMnemonic returns a new wallet from a BIP-39 mnemonic.
+func NewFromMnemonic(mnemonic string) (*Wallet, error) {
+	if mnemonic == "" {
+		return nil, errors.New("mnemonic is required")
 	}
+
+	seed, err := NewSeedFromMnemonic(mnemonic)
+	if err != nil {
+		return nil, err
+	}
+	wallet, err := newWallet(seed)
+	if err != nil {
+		return nil, err
+	}
+	wallet.mnemonic = mnemonic
 
 	return wallet, nil
 }
 
-// URL implements accounts.Wallet, returning the URL of the USB hardware device, however this does nothing since this is not a USB device.
+// NewFromSeed returns a new wallet from a BIP-39 seed.
+func NewFromSeed(seed []byte) (*Wallet, error) {
+	if len(seed) == 0 {
+		return nil, errors.New("seed is required")
+	}
+
+	return newWallet(seed)
+}
+
+// URL implements accounts.Wallet, returning the URL of the device that the wallet is on, however this does nothing since this is not a hardware device.
 func (w *Wallet) URL() accounts.URL {
 	return w.url
 }
 
 // Status implements accounts.Wallet, returning a custom status message from the
-// underlying vendor-specific hardware wallet implementation.
+// underlying vendor-specific hardware wallet implementation, however this does nothing since this is not a hardware device.
 func (w *Wallet) Status() (string, error) {
 	return "ok", nil
 }
 
-// Open implements the accounts wallet Close function. Since this is not a USB device, this methods does nothing.
+// Open implements accounts.Wallet, however this does nothing since this is not a hardware device.
 func (w *Wallet) Open(passphrase string) error {
 	return nil
 }
 
-// Close implements the accounts wallet Close function. Since this is not a USB device, this methods does nothing.
+// Close implements accounts.Wallet, however this does nothing since this is not a hardware device.
 func (w *Wallet) Close() error {
 	return nil
 }
@@ -155,19 +173,13 @@ func (w *Wallet) SelfDerive(base accounts.DerivationPath, chain ethereum.ChainSt
 	*/
 }
 
-// SignHash implements accounts.Wallet which allows signing of arbitrary data
+// SignHash implements accounts.Wallet, which allows signing arbitrary data.
 func (w *Wallet) SignHash(account accounts.Account, hash []byte) ([]byte, error) {
 	return nil, nil
 
 }
 
-// SignTx implements accounts.Wallet. It sends the transaction over to the Ledger
-// wallet to request a confirmation from the user. It returns either the signed
-// transaction or a failure if the user denied the transaction.
-//
-// Note, if the version of the Ethereum application running on the Ledger wallet is
-// too old to sign EIP-155 transactions, but such is requested nonetheless, an error
-// will be returned opposed to silently signing in Homestead mode.
+// SignTx implements accounts.Wallet, which allows the account to sign an Ethereum transaction.
 func (w *Wallet) SignTx(account accounts.Account, tx *types.Transaction, chainID *big.Int) (*types.Transaction, error) {
 	w.stateLock.RLock() // Comms have own mutex, this is for the state fields
 	defer w.stateLock.RUnlock()
@@ -193,27 +205,26 @@ func (w *Wallet) SignTx(account accounts.Account, tx *types.Transaction, chainID
 	return nil, nil
 }
 
-// SignHashWithPassphrase implements accounts.Wallet
+// SignHashWithPassphrase implements accounts.Wallet, with signs a hash.
 func (w *Wallet) SignHashWithPassphrase(account accounts.Account, passphrase string, hash []byte) ([]byte, error) {
 	return nil, nil
 }
 
 // SignTxWithPassphrase implements accounts.Wallet, attempting to sign the given
 // transaction with the given account using passphrase as extra authentication.
-// Since USB wallets don't rely on passphrases, these are silently ignored.
 func (w *Wallet) SignTxWithPassphrase(account accounts.Account, passphrase string, tx *types.Transaction, chainID *big.Int) (*types.Transaction, error) {
 	return w.SignTx(account, tx, chainID)
 }
 
-// Mnemonic ...
+// Mnemonic returns the wallet's mnemonic, if using a mnemonic as a seed.
 func (w *Wallet) Mnemonic() (string, error) {
 	if w.mnemonic == "" {
-		return "", errors.New("mnemonic not found")
+		return "", errors.New("this wallet is not using a mnemonic")
 	}
 	return w.mnemonic, nil
 }
 
-// PrivateKey ...
+// PrivateKey returns the ECDSA private key of the account.
 func (w *Wallet) PrivateKey(account accounts.Account) (*ecdsa.PrivateKey, error) {
 	path, err := ParseDerivationPath(account.URL.Path)
 	if err != nil {
@@ -223,7 +234,7 @@ func (w *Wallet) PrivateKey(account accounts.Account) (*ecdsa.PrivateKey, error)
 	return w.derivePrivateKey(path)
 }
 
-// PrivateKeyBytes ...
+// PrivateKeyBytes returns the ECDSA private key in bytes format of the account.
 func (w *Wallet) PrivateKeyBytes(account accounts.Account) ([]byte, error) {
 	privateKey, err := w.PrivateKey(account)
 	if err != nil {
@@ -233,7 +244,7 @@ func (w *Wallet) PrivateKeyBytes(account accounts.Account) ([]byte, error) {
 	return crypto.FromECDSA(privateKey), nil
 }
 
-// PrivateKeyHex ...
+// PrivateKeyHex return the ECDSA private key in hex string format of the account.
 func (w *Wallet) PrivateKeyHex(account accounts.Account) (string, error) {
 	privateKeyBytes, err := w.PrivateKeyBytes(account)
 	if err != nil {
@@ -243,7 +254,7 @@ func (w *Wallet) PrivateKeyHex(account accounts.Account) (string, error) {
 	return hexutil.Encode(privateKeyBytes)[2:], nil
 }
 
-// PublicKey ...
+// PublicKey returns the ECDSA public key of the account.
 func (w *Wallet) PublicKey(account accounts.Account) (*ecdsa.PublicKey, error) {
 	path, err := ParseDerivationPath(account.URL.Path)
 	if err != nil {
@@ -253,7 +264,7 @@ func (w *Wallet) PublicKey(account accounts.Account) (*ecdsa.PublicKey, error) {
 	return w.derivePublicKey(path)
 }
 
-// PublicKeyBytes ...
+// PublicKeyBytes returns the ECDSA public key in bytes format of the account.
 func (w *Wallet) PublicKeyBytes(account accounts.Account) ([]byte, error) {
 	publicKey, err := w.PublicKey(account)
 	if err != nil {
@@ -263,7 +274,7 @@ func (w *Wallet) PublicKeyBytes(account accounts.Account) ([]byte, error) {
 	return crypto.FromECDSAPub(publicKey), nil
 }
 
-// PublicKeyHex ...
+// PublicKeyHex return the ECDSA public key in hex string format of the account.
 func (w *Wallet) PublicKeyHex(account accounts.Account) (string, error) {
 	publicKeyBytes, err := w.PublicKeyBytes(account)
 	if err != nil {
@@ -273,7 +284,7 @@ func (w *Wallet) PublicKeyHex(account accounts.Account) (string, error) {
 	return hexutil.Encode(publicKeyBytes)[4:], nil
 }
 
-// Address ...
+// Address returns the address of the account.
 func (w *Wallet) Address(account accounts.Account) (common.Address, error) {
 	publicKey, err := w.PublicKey(account)
 	if err != nil {
@@ -283,7 +294,7 @@ func (w *Wallet) Address(account accounts.Account) (common.Address, error) {
 	return crypto.PubkeyToAddress(*publicKey), nil
 }
 
-// AddressBytes ...
+// AddressBytes returns the address in bytes format of the account.
 func (w *Wallet) AddressBytes(account accounts.Account) ([]byte, error) {
 	address, err := w.Address(account)
 	if err != nil {
@@ -292,7 +303,7 @@ func (w *Wallet) AddressBytes(account accounts.Account) ([]byte, error) {
 	return address.Bytes(), nil
 }
 
-// AddressHex ...
+// AddressHex returns the address in hex string format of the account.
 func (w *Wallet) AddressHex(account accounts.Account) (string, error) {
 	address, err := w.Address(account)
 	if err != nil {
@@ -301,17 +312,17 @@ func (w *Wallet) AddressHex(account accounts.Account) (string, error) {
 	return address.Hex(), nil
 }
 
-// Path ...
+// Path return the derivation path of the account.
 func (w *Wallet) Path(account accounts.Account) (string, error) {
 	return account.URL.Path, nil
 }
 
-// ParseDerivationPath ...
+// ParseDerivationPath parses the derivation path in string format into []uint32
 func ParseDerivationPath(path string) (accounts.DerivationPath, error) {
 	return accounts.ParseDerivationPath(path)
 }
 
-// MustParseDerivationPath ...
+// MustParseDerivationPath parses the derivation path in string format into []uint32 but will panic if it can't parse it.
 func MustParseDerivationPath(path string) accounts.DerivationPath {
 	parsed, err := accounts.ParseDerivationPath(path)
 	if err != nil {
@@ -321,7 +332,7 @@ func MustParseDerivationPath(path string) accounts.DerivationPath {
 	return parsed
 }
 
-// NewMnemonic ...
+// NewMnemonic returns a randomly generated BIP-39 mnemonic.
 func NewMnemonic() (string, error) {
 	entropy, err := bip39.NewEntropy(128)
 	if err != nil {
@@ -330,11 +341,23 @@ func NewMnemonic() (string, error) {
 	return bip39.NewMnemonic(entropy)
 }
 
-// NewSeed ...
+// NewSeed returns a randomly generated BIP-39 seed.
 func NewSeed() ([]byte, error) {
 	return bip32.NewSeed()
 }
 
+// NewSeedFromMnemonic ...
+func NewSeedFromMnemonic(mnemonic string) ([]byte, error) {
+	if mnemonic == "" {
+		return nil, errors.New("mnemonic is required")
+	}
+
+	seed := bip39.NewSeed(mnemonic, "")
+
+	return seed, nil
+}
+
+// DerivePrivateKey derives the private key of the derivation path
 func (w *Wallet) derivePrivateKey(path accounts.DerivationPath) (*ecdsa.PrivateKey, error) {
 	var err error
 	key := w.masterKey
@@ -354,6 +377,7 @@ func (w *Wallet) derivePrivateKey(path accounts.DerivationPath) (*ecdsa.PrivateK
 	return privateKeyECDSA, nil
 }
 
+// DerivePublicKey derives the public key of the derivation path
 func (w *Wallet) derivePublicKey(path accounts.DerivationPath) (*ecdsa.PublicKey, error) {
 	privateKeyECDSA, err := w.derivePrivateKey(path)
 	if err != nil {
@@ -369,6 +393,7 @@ func (w *Wallet) derivePublicKey(path accounts.DerivationPath) (*ecdsa.PublicKey
 	return publicKeyECDSA, nil
 }
 
+// DeriveAddress derives the account address of the derivation path
 func (w *Wallet) deriveAddress(path accounts.DerivationPath) (common.Address, error) {
 	publicKeyECDSA, err := w.derivePublicKey(path)
 	if err != nil {

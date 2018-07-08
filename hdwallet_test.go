@@ -106,4 +106,26 @@ func TestWallet(t *testing.T) {
 	if addressHex != "0xC49926C4124cEe1cbA0Ea94Ea31a6c12318df947" {
 		t.Error("wrong address")
 	}
+
+	// seed test
+
+	seed, err := NewSeedFromMnemonic(mnemonic)
+	if err != nil {
+		t.Error(err)
+	}
+
+	wallet, err = NewFromSeed(seed)
+	if err != nil {
+		t.Error(err)
+	}
+
+	path = MustParseDerivationPath("m/44'/60'/0'/0/0")
+	account, err = wallet.Derive(path, false)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if account.Address.Hex() != "0xC49926C4124cEe1cbA0Ea94Ea31a6c12318df947" {
+		t.Error("wrong address")
+	}
 }
