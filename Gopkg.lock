@@ -3,18 +3,6 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/FactomProject/basen"
-  packages = ["."]
-  revision = "fe3947df716ebfda9847eb1b9a48f9592e06478c"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/FactomProject/btcutilecc"
-  packages = ["."]
-  revision = "d3a63a5752ecf3fbc06bd97365da752111c263df"
-
-[[projects]]
-  branch = "master"
   name = "github.com/aristanetworks/goarista"
   packages = ["monotime"]
   revision = "2c5933638c5ef1bc320b01486100788c81d57b99"
@@ -104,12 +92,6 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/tyler-smith/go-bip32"
-  packages = ["."]
-  revision = "2c9cfd17756470a0b7c3e4b7954bae7d11035504"
-
-[[projects]]
-  branch = "master"
   name = "github.com/tyler-smith/go-bip39"
   packages = ["."]
   revision = "52158e4697b87de16ed390e1bdaf813e581008fa"
@@ -132,6 +114,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b9d649a248e5b3a7acef3183e36048865c1765c9f47b3171064c033b49f89d2b"
+  inputs-digest = "6ad4b2174ce7a75c33a183c8db5474e703deb5f8940416965fc4038652304c55"
   solver-name = "gps-cdcl"
   solver-version = 1

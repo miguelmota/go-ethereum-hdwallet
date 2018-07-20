@@ -16,7 +16,6 @@ test:
 .PHONY: ensure
 ensure:
 	@dep ensure
-	$(MAKE) deps/fix
 
 .PHONY: deps/fix
 deps/fix:
