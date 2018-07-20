@@ -9,8 +9,7 @@ import (
 
 func main() {
 	mnemonic := "tag volcano eight thank tide danger coast health above argue embrace heavy"
-	fmt.Println("deriving from mnenonic")
-	fmt.Println(mnemonic)
+
 	wallet, err := hdwallet.NewFromMnemonic(mnemonic)
 	if err != nil {
 		log.Fatal(err)
@@ -22,12 +21,20 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Println("account address", account.Address.Hex())
+	fmt.Printf("Account address: %s\n", account.Address.Hex())
 
-	pk, _ := wallet.PrivateKeyHex(account)
-	fmt.Println("private key hex: ", pk)
+	privateKey, err := wallet.PrivateKeyHex(account)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	pub, _ := wallet.PublicKeyHex(account)
-	fmt.Println("public key hex: ", pub)
+	fmt.Printf("Private key in hex: %s\n", privateKey)
+
+	publicKey, _ := wallet.PublicKeyHex(account)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Public key in hex: %s\n", publicKey)
 
 }
