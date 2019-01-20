@@ -1,6 +1,6 @@
 <h3 align="center">
   <br />
-  <img src="https://user-images.githubusercontent.com/168240/51435503-4f3cc700-1c2d-11e9-8e02-1a011603a257.png" alt="logo" width="700" />
+  <img src="https://user-images.githubusercontent.com/168240/51435503-4f3cc700-1c2d-11e9-8e02-1a011603a257.png" alt="logo" width="600" />
   <br />
   <br />
   <br />
@@ -22,7 +22,7 @@ go get -u github.com/miguelmota/go-ethereum-hdwallet
 
 [https://godoc.org/github.com/miguelmota/go-ethereum-hdwallet](https://godoc.org/github.com/miguelmota/go-ethereum-hdwallet)
 
-## Getting Started
+## Getting started
 
 ```go
 package main
