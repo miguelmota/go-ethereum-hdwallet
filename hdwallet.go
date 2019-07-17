@@ -357,6 +357,21 @@ func (w *Wallet) Path(account accounts.Account) (string, error) {
 	return account.URL.Path, nil
 }
 
+// SignData is not implemented
+func (w *Wallet) SignData(account Account, mimeType string, data []byte) ([]byte, error) {
+	return nil, errors.New("not implemented")
+}
+
+// SignDataWithPassphrase is not implemented
+func (w *Wallet) SignDataWithPassphrase(account Account, passphrase, mimeType string, data []byte) ([]byte, error) {
+	return nil, errors.New("not implemented")
+}
+
+// SignText is not implemented
+func (w *Wallet) SignText(account Account, text []byte) ([]byte, error) {
+	return nil, errors.New("not implemented")
+}
+
 // ParseDerivationPath parses the derivation path in string format into []uint32
 func ParseDerivationPath(path string) (accounts.DerivationPath, error) {
 	return accounts.ParseDerivationPath(path)
