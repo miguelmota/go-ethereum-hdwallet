@@ -372,6 +372,11 @@ func (w *Wallet) SignText(account Account, text []byte) ([]byte, error) {
 	return nil, errors.New("not implemented")
 }
 
+// SignTextWithPassphrase is not implemented
+func (w *Wallet) SignTextWithPassphrase(account Account, passphrase string, hash []byte) ([]byte, error) {
+	return nil, errors.New("not implemented")
+}
+
 // ParseDerivationPath parses the derivation path in string format into []uint32
 func ParseDerivationPath(path string) (accounts.DerivationPath, error) {
 	return accounts.ParseDerivationPath(path)
