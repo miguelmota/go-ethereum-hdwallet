@@ -358,22 +358,22 @@ func (w *Wallet) Path(account accounts.Account) (string, error) {
 }
 
 // SignData is not implemented
-func (w *Wallet) SignData(account Account, mimeType string, data []byte) ([]byte, error) {
+func (w *Wallet) SignData(account accounts.Account, mimeType string, data []byte) ([]byte, error) {
 	return nil, errors.New("not implemented")
 }
 
 // SignDataWithPassphrase is not implemented
-func (w *Wallet) SignDataWithPassphrase(account Account, passphrase, mimeType string, data []byte) ([]byte, error) {
+func (w *Wallet) SignDataWithPassphrase(account accounts.Account, passphrase, mimeType string, data []byte) ([]byte, error) {
 	return nil, errors.New("not implemented")
 }
 
 // SignText is not implemented
-func (w *Wallet) SignText(account Account, text []byte) ([]byte, error) {
+func (w *Wallet) SignText(account accounts.Account, text []byte) ([]byte, error) {
 	return nil, errors.New("not implemented")
 }
 
 // SignTextWithPassphrase is not implemented
-func (w *Wallet) SignTextWithPassphrase(account Account, passphrase string, hash []byte) ([]byte, error) {
+func (w *Wallet) SignTextWithPassphrase(account accounts.Account, passphrase string, hash []byte) ([]byte, error) {
 	return nil, errors.New("not implemented")
 }
 
