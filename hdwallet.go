@@ -196,7 +196,7 @@ func (w *Wallet) Derive(path accounts.DerivationPath, pin bool) (accounts.Accoun
 // user used previously (based on the chain state), but ones that he/she did not
 // explicitly pin to the wallet manually. To avoid chain head monitoring, self
 // derivation only runs during account listing (and even then throttled).
-func (w *Wallet) SelfDerive(base accounts.DerivationPath, chain ethereum.ChainStateReader) {
+func (w *Wallet) SelfDerive(base []accounts.DerivationPath, chain ethereum.ChainStateReader) {
 	// TODO: self derivation
 }
 
@@ -355,6 +355,26 @@ func (w *Wallet) AddressHex(account accounts.Account) (string, error) {
 // Path return the derivation path of the account.
 func (w *Wallet) Path(account accounts.Account) (string, error) {
 	return account.URL.Path, nil
+}
+
+// SignData is not implemented
+func (w *Wallet) SignData(account accounts.Account, mimeType string, data []byte) ([]byte, error) {
+	return nil, errors.New("not implemented")
+}
+
+// SignDataWithPassphrase is not implemented
+func (w *Wallet) SignDataWithPassphrase(account accounts.Account, passphrase, mimeType string, data []byte) ([]byte, error) {
+	return nil, errors.New("not implemented")
+}
+
+// SignText is not implemented
+func (w *Wallet) SignText(account accounts.Account, text []byte) ([]byte, error) {
+	return nil, errors.New("not implemented")
+}
+
+// SignTextWithPassphrase is not implemented
+func (w *Wallet) SignTextWithPassphrase(account accounts.Account, passphrase string, hash []byte) ([]byte, error) {
+	return nil, errors.New("not implemented")
 }
 
 // ParseDerivationPath parses the derivation path in string format into []uint32
