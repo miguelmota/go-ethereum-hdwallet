@@ -392,24 +392,47 @@ func (w *Wallet) Path(account accounts.Account) (string, error) {
 	return account.URL.Path, nil
 }
 
-// SignData is not implemented
+// SignData signs keccak256(data). The mimetype parameter describes the type of data being signed
 func (w *Wallet) SignData(account accounts.Account, mimeType string, data []byte) ([]byte, error) {
-	return nil, errors.New("not implemented")
+	// Make sure the requested account is contained within
+	if !w.Contains(account) {
+		return nil, accounts.ErrUnknownAccount
+	}
+
+	return w.SignHash(account, crypto.Keccak256(data))
 }
 
-// SignDataWithPassphrase is not implemented
+// SignDataWithPassphrase signs keccak256(data). The mimetype parameter describes the type of data being signed
 func (w *Wallet) SignDataWithPassphrase(account accounts.Account, passphrase, mimeType string, data []byte) ([]byte, error) {
-	return nil, errors.New("not implemented")
+	// Make sure the requested account is contained within
+	if !w.Contains(account) {
+		return nil, accounts.ErrUnknownAccount
+	}
+
+	return w.SignHashWithPassphrase(account, passphrase, crypto.Keccak256(data))
 }
 
-// SignText is not implemented
+// SignText requests the wallet to sign the hash of a given piece of data, prefixed
+// the needed details via SignHashWithPassphrase, or by other means (e.g. unlock
+// the account in a keystore).
 func (w *Wallet) SignText(account accounts.Account, text []byte) ([]byte, error) {
-	return nil, errors.New("not implemented")
+	// Make sure the requested account is contained within
+	if !w.Contains(account) {
+		return nil, accounts.ErrUnknownAccount
+	}
+
+	return w.SignHash(account, accounts.TextHash(text))
 }
 
-// SignTextWithPassphrase is not implemented
-func (w *Wallet) SignTextWithPassphrase(account accounts.Account, passphrase string, hash []byte) ([]byte, error) {
-	return nil, errors.New("not implemented")
+// SignTextWithPassphrase implements accounts.Wallet, attempting to sign the
+// given text (which is hashed) with the given account using passphrase as extra authentication.
+func (w *Wallet) SignTextWithPassphrase(account accounts.Account, passphrase string, text []byte) ([]byte, error) {
+	// Make sure the requested account is contained within
+	if !w.Contains(account) {
+		return nil, accounts.ErrUnknownAccount
+	}
+
+	return w.SignHashWithPassphrase(account, passphrase, accounts.TextHash(text))
 }
 
 // ParseDerivationPath parses the derivation path in string format into []uint32

@@ -142,6 +142,22 @@ func TestWallet(t *testing.T) {
 		t.Error("expected match")
 	}
 
+	signedTx3, err := wallet.SignTxEIP155(account, tx, big.NewInt(42))
+	if err != nil {
+		t.Error(err)
+	}
+
+	v, r, s = signedTx3.RawSignatureValues()
+	if v.Cmp(big.NewInt(0)) != 1 {
+		t.Error("expected v value")
+	}
+	if r.Cmp(big.NewInt(0)) != 1 {
+		t.Error("expected r value")
+	}
+	if s.Cmp(big.NewInt(0)) != 1 {
+		t.Error("expected s value")
+	}
+
 	data = []byte("hello")
 	hash := crypto.Keccak256Hash(data)
 	sig, err := wallet.SignHash(account, hash.Bytes())
@@ -161,6 +177,39 @@ func TestWallet(t *testing.T) {
 	}
 	if hexutil.Encode(sig) != hexutil.Encode(sig2) {
 		t.Error("expected match")
+	}
+
+	mimeType := "text/plain"
+	signedData, err := wallet.SignData(account, mimeType, []byte("hello world"))
+	if err != nil {
+		t.Error(err)
+	}
+	if len(signedData) == 0 {
+		t.Error("Expected signature")
+	}
+
+	signedTextData, err := wallet.SignText(account, []byte("hello world"))
+	if err != nil {
+		t.Error(err)
+	}
+	if len(signedTextData) == 0 {
+		t.Error("Expected signature")
+	}
+
+	signedData2, err := wallet.SignDataWithPassphrase(account, "", mimeType, []byte("hello world"))
+	if err != nil {
+		t.Error(err)
+	}
+	if len(signedData2) == 0 {
+		t.Error("Expected signature")
+	}
+
+	signedData3, err := wallet.SignTextWithPassphrase(account, "", []byte("hello world"))
+	if err != nil {
+		t.Error(err)
+	}
+	if len(signedData3) == 0 {
+		t.Error("Expected signature")
 	}
 
 	err = wallet.Unpin(account)
