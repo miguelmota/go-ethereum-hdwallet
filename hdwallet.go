@@ -216,6 +216,41 @@ func (w *Wallet) SignHash(account accounts.Account, hash []byte) ([]byte, error)
 	return crypto.Sign(hash, privateKey)
 }
 
+// SignTxEIP155 implements accounts.Wallet, which allows the account to sign an ERC-20 transaction.
+func (w *Wallet) SignTxEIP155(account accounts.Account, tx *types.Transaction, chainID *big.Int) (*types.Transaction, error) {
+	w.stateLock.RLock() // Comms have own mutex, this is for the state fields
+	defer w.stateLock.RUnlock()
+
+	// Make sure the requested account is contained within
+	path, ok := w.paths[account.Address]
+	if !ok {
+		return nil, accounts.ErrUnknownAccount
+	}
+
+	privateKey, err := w.derivePrivateKey(path)
+	if err != nil {
+		return nil, err
+	}
+
+	// Sign the transaction and verify the sender to avoid hardware fault surprises
+	signedTx, err := types.SignTx(tx, types.NewEIP155Signer(chainID), privateKey)
+	if err != nil {
+		return nil, err
+	}
+
+	msg, err := signedTx.AsMessage(types.NewEIP155Signer(chainID))
+	if err != nil {
+		return nil, err
+	}
+
+	sender := msg.From()
+	if sender != account.Address {
+		return nil, fmt.Errorf("signer mismatch: expected %s, got %s", account.Address.Hex(), sender.Hex())
+	}
+
+	return signedTx, nil
+}
+
 // SignTx implements accounts.Wallet, which allows the account to sign an Ethereum transaction.
 func (w *Wallet) SignTx(account accounts.Account, tx *types.Transaction, chainID *big.Int) (*types.Transaction, error) {
 	w.stateLock.RLock() // Comms have own mutex, this is for the state fields
