@@ -36,3 +36,8 @@ run/example/3:
 .PHONY: run/example/4
 run/example/4:
 	@go run example/keys.go
+
+.PHONY: release
+release:
+	@rm -rf dist
+	@goreleaser

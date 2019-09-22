@@ -1,0 +1,4 @@
+builds:
+  - binary: goethereumhdwallet
+    goos:
+    goarch:
