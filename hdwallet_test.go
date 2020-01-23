@@ -270,4 +270,18 @@ func TestWallet(t *testing.T) {
 	if len(words) != 12 {
 		t.Error("expected 12 words")
 	}
+
+	entropy, err := NewEntropy(128)
+	if err != nil {
+		t.Error(err)
+	}
+
+	mnemonic, err = NewMnemonicFromEntropy(entropy)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if len(words) != 12 {
+		t.Error("expected 12 words")
+	}
 }

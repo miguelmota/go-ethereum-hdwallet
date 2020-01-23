@@ -460,6 +460,16 @@ func NewMnemonic(bits int) (string, error) {
 	return bip39.NewMnemonic(entropy)
 }
 
+// NewMnemonicFromEntropy returns a BIP-39 mnemonic from entropy.
+func NewMnemonicFromEntropy(entropy []byte) (string, error) {
+	return bip39.NewMnemonic(entropy)
+}
+
+// NewEntropy returns a randomly generated entropy.
+func NewEntropy(bits int) ([]byte, error) {
+	return bip39.NewEntropy(bits)
+}
+
 // NewSeed returns a randomly generated BIP-39 seed.
 func NewSeed() ([]byte, error) {
 	b := make([]byte, 64)
