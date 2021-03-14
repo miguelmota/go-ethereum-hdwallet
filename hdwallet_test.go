@@ -2,6 +2,7 @@ package hdwallet
 
 import (
 	"math/big"
+	"os"
 	"strings"
 	"testing"
 
@@ -12,6 +13,50 @@ import (
 )
 
 // TODO: table test
+
+func TestIssue172(t *testing.T) {
+	mnemonic := "sound practice disease erupt basket pumpkin truck file gorilla behave find exchange napkin boy congress address city net prosper crop chair marine chase seven"
+
+	getWallet := func() *Wallet {
+		wallet, err := NewFromMnemonic(mnemonic)
+		if err != nil {
+			t.Error(err)
+		}
+		return wallet
+	}
+
+	path, err := ParseDerivationPath("m/44'/60'/0'/0/0")
+	if err != nil {
+		t.Error(err)
+	}
+
+	// Reset Envars
+	os.Setenv(issue179FixEnvar, "")
+
+	// Derive the old (wrong way)
+	account, err := getWallet().Derive(path, false)
+
+	if account.Address.Hex() != "0x3943412CBEEEd4b68d73382b136F36b0CB82F481" {
+		t.Error("wrong address")
+	}
+
+	// Set envar to non-zero length to derive correctly
+	os.Setenv(issue179FixEnvar, "1")
+	account, err = getWallet().Derive(path, false)
+	if account.Address.Hex() != "0x98e440675eFF3041D20bECb7fE7e81746A431b6d" {
+		t.Error("wrong address")
+	}
+
+	// Reset Envars
+	os.Setenv(issue179FixEnvar, "")
+	wallet := getWallet()
+	wallet.SetFixIssue172(true)
+	account, err = wallet.Derive(path, false)
+
+	if account.Address.Hex() != "0x98e440675eFF3041D20bECb7fE7e81746A431b6d" {
+		t.Error("wrong address")
+	}
+}
 
 func TestWallet(t *testing.T) {
 	mnemonic := "tag volcano eight thank tide danger coast health above argue embrace heavy"
