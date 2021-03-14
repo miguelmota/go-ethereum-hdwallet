@@ -108,6 +108,19 @@ func main() {
 }
 ```
 
+## CLI
+
+```bash
+go get -u github.com/miguelmota/go-ethereum/cmd/geth-hdwallet
+```
+
+```bash
+$ geth-hdwallet -mnemonic "tag volcano eight thank tide danger coast health above argue embrace heavy" -path "m/44'/60'/0'/0/0"
+
+public address: 0xC49926C4124cEe1cbA0Ea94Ea31a6c12318df947
+private key: 63e21d10fd50155dbba0e7d3f7431a400b84b4c2ac1ee38872f82448fe3ecfb9
+```
+
 ## Test
 
 ```bash
