@@ -1,0 +1,56 @@
+# github.com/allegro/bigcache v1.2.1
+github.com/allegro/bigcache
+github.com/allegro/bigcache/queue
+# github.com/aristanetworks/goarista v0.0.0-20190912214011-b54698eaaca6
+github.com/aristanetworks/goarista/monotime
+# github.com/btcsuite/btcd v0.21.0-beta
+github.com/btcsuite/btcd/btcec
+github.com/btcsuite/btcd/chaincfg
+github.com/btcsuite/btcd/chaincfg/chainhash
+github.com/btcsuite/btcd/wire
+# github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
+github.com/btcsuite/btcutil
+github.com/btcsuite/btcutil/base58
+github.com/btcsuite/btcutil/bech32
+github.com/btcsuite/btcutil/hdkeychain
+# github.com/davecgh/go-spew v1.1.1
+github.com/davecgh/go-spew/spew
+# github.com/elastic/gosigar v0.10.5
+github.com/elastic/gosigar
+github.com/elastic/gosigar/sys/windows
+# github.com/ethereum/go-ethereum v1.9.5
+github.com/ethereum/go-ethereum
+github.com/ethereum/go-ethereum/accounts
+github.com/ethereum/go-ethereum/common
+github.com/ethereum/go-ethereum/common/hexutil
+github.com/ethereum/go-ethereum/common/math
+github.com/ethereum/go-ethereum/common/mclock
+github.com/ethereum/go-ethereum/common/prque
+github.com/ethereum/go-ethereum/core/types
+github.com/ethereum/go-ethereum/crypto
+github.com/ethereum/go-ethereum/crypto/secp256k1
+github.com/ethereum/go-ethereum/ethdb
+github.com/ethereum/go-ethereum/event
+github.com/ethereum/go-ethereum/log
+github.com/ethereum/go-ethereum/metrics
+github.com/ethereum/go-ethereum/params
+github.com/ethereum/go-ethereum/rlp
+github.com/ethereum/go-ethereum/trie
+# github.com/go-stack/stack v1.8.0
+github.com/go-stack/stack
+# github.com/pkg/errors v0.8.1
+github.com/pkg/errors
+# github.com/steakknife/bloomfilter v0.0.0-20180922174646-6819c0d2a570
+github.com/steakknife/bloomfilter
+# github.com/steakknife/hamming v0.0.0-20180906055917-c99c65617cd3
+github.com/steakknife/hamming
+# github.com/tyler-smith/go-bip39 v0.0.0-20180618194314-52158e4697b8
+github.com/tyler-smith/go-bip39
+# golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83
+golang.org/x/crypto/pbkdf2
+golang.org/x/crypto/ripemd160
+golang.org/x/crypto/sha3
+# golang.org/x/sys v0.0.0-20191026070338-33540a1f6037
+golang.org/x/sys/cpu
+golang.org/x/sys/unix
+golang.org/x/sys/windows
