@@ -163,7 +163,7 @@ func TestWallet(t *testing.T) {
 
 	tx := types.NewTransaction(nonce, toAddress, value, gasLimit, gasPrice, data)
 
-	signedTx, err := wallet.SignTx(account, tx, nil)
+	signedTx, err := wallet.SignTx(account, tx, nil, nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -179,7 +179,7 @@ func TestWallet(t *testing.T) {
 		t.Error("expected s value")
 	}
 
-	signedTx2, err := wallet.SignTxWithPassphrase(account, "", tx, nil)
+	signedTx2, err := wallet.SignTxWithPassphrase(account, "", tx, nil, nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -187,7 +187,7 @@ func TestWallet(t *testing.T) {
 		t.Error("expected match")
 	}
 
-	signedTx3, err := wallet.SignTxEIP155(account, tx, big.NewInt(42))
+	signedTx3, err := wallet.SignTxEIP155(account, tx, big.NewInt(41), big.NewInt(42))
 	if err != nil {
 		t.Error(err)
 	}
