@@ -230,7 +230,7 @@ func (w *Wallet) SignHash(account accounts.Account, hash []byte) ([]byte, error)
 }
 
 // SignTxEIP155 implements accounts.Wallet, which allows the account to sign an ERC-20 transaction.
-func (w *Wallet) SignTxEIP155(account accounts.Account, tx *types.Transaction, baseFee, chainID *big.Int) (*types.Transaction, error) {
+func (w *Wallet) SignTxEIP155(account accounts.Account, tx *types.Transaction, chainID, baseFee *big.Int) (*types.Transaction, error) {
 	w.stateLock.RLock() // Comms have own mutex, this is for the state fields
 	defer w.stateLock.RUnlock()
 
@@ -265,7 +265,7 @@ func (w *Wallet) SignTxEIP155(account accounts.Account, tx *types.Transaction, b
 }
 
 // SignTx implements accounts.Wallet, which allows the account to sign an Ethereum transaction.
-func (w *Wallet) SignTx(account accounts.Account, tx *types.Transaction, baseFee, chainID *big.Int) (*types.Transaction, error) {
+func (w *Wallet) SignTx(account accounts.Account, tx *types.Transaction, chainID, baseFee *big.Int) (*types.Transaction, error) {
 	w.stateLock.RLock() // Comms have own mutex, this is for the state fields
 	defer w.stateLock.RUnlock()
 
@@ -308,7 +308,7 @@ func (w *Wallet) SignHashWithPassphrase(account accounts.Account, passphrase str
 
 // SignTxWithPassphrase implements accounts.Wallet, attempting to sign the given
 // transaction with the given account using passphrase as extra authentication.
-func (w *Wallet) SignTxWithPassphrase(account accounts.Account, passphrase string, tx *types.Transaction, baseFee, chainID *big.Int) (*types.Transaction, error) {
+func (w *Wallet) SignTxWithPassphrase(account accounts.Account, passphrase string, tx *types.Transaction, chainID, baseFee *big.Int) (*types.Transaction, error) {
 	return w.SignTx(account, tx, baseFee, chainID)
 }
 

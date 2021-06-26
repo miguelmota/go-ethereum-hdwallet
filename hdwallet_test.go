@@ -187,7 +187,7 @@ func TestWallet(t *testing.T) {
 		t.Error("expected match")
 	}
 
-	signedTx3, err := wallet.SignTxEIP155(account, tx, big.NewInt(41), big.NewInt(42))
+	signedTx3, err := wallet.SignTxEIP155(account, tx, big.NewInt(42), big.NewInt(10))
 	if err != nil {
 		t.Error(err)
 	}
