@@ -2,9 +2,11 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-//go:build !linux && !netbsd && arm64
-// +build !linux,!netbsd,arm64
+//go:build gc
+// +build gc
 
 package cpu
 
-func doinit() {}
+func getisar0() uint64
+func getisar1() uint64
+func getpfr0() uint64

@@ -230,7 +230,7 @@ func (w *Wallet) SignHash(account accounts.Account, hash []byte) ([]byte, error)
 }
 
 // SignTxEIP155 implements accounts.Wallet, which allows the account to sign an ERC-20 transaction.
-func (w *Wallet) SignTxEIP155(account accounts.Account, tx *types.Transaction, chainID *big.Int) (*types.Transaction, error) {
+func (w *Wallet) SignTxEIP155(account accounts.Account, tx *types.Transaction, baseFee, chainID *big.Int) (*types.Transaction, error) {
 	w.stateLock.RLock() // Comms have own mutex, this is for the state fields
 	defer w.stateLock.RUnlock()
 
@@ -251,7 +251,7 @@ func (w *Wallet) SignTxEIP155(account accounts.Account, tx *types.Transaction, c
 		return nil, err
 	}
 
-	msg, err := signedTx.AsMessage(types.NewEIP155Signer(chainID))
+	msg, err := signedTx.AsMessage(types.NewEIP155Signer(chainID), baseFee)
 	if err != nil {
 		return nil, err
 	}
@@ -265,7 +265,7 @@ func (w *Wallet) SignTxEIP155(account accounts.Account, tx *types.Transaction, c
 }
 
 // SignTx implements accounts.Wallet, which allows the account to sign an Ethereum transaction.
-func (w *Wallet) SignTx(account accounts.Account, tx *types.Transaction, chainID *big.Int) (*types.Transaction, error) {
+func (w *Wallet) SignTx(account accounts.Account, tx *types.Transaction, baseFee, chainID *big.Int) (*types.Transaction, error) {
 	w.stateLock.RLock() // Comms have own mutex, this is for the state fields
 	defer w.stateLock.RUnlock()
 
@@ -286,7 +286,7 @@ func (w *Wallet) SignTx(account accounts.Account, tx *types.Transaction, chainID
 		return nil, err
 	}
 
-	msg, err := signedTx.AsMessage(types.HomesteadSigner{})
+	msg, err := signedTx.AsMessage(types.HomesteadSigner{}, baseFee)
 	if err != nil {
 		return nil, err
 	}
@@ -308,8 +308,8 @@ func (w *Wallet) SignHashWithPassphrase(account accounts.Account, passphrase str
 
 // SignTxWithPassphrase implements accounts.Wallet, attempting to sign the given
 // transaction with the given account using passphrase as extra authentication.
-func (w *Wallet) SignTxWithPassphrase(account accounts.Account, passphrase string, tx *types.Transaction, chainID *big.Int) (*types.Transaction, error) {
-	return w.SignTx(account, tx, chainID)
+func (w *Wallet) SignTxWithPassphrase(account accounts.Account, passphrase string, tx *types.Transaction, baseFee, chainID *big.Int) (*types.Transaction, error) {
+	return w.SignTx(account, tx, baseFee, chainID)
 }
 
 // PrivateKey returns the ECDSA private key of the account.
