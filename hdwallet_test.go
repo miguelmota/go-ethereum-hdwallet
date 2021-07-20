@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -64,6 +65,8 @@ func TestWallet(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	// Check that Wallet implements the accounts.Wallet interface.
+	var _ accounts.Wallet = wallet
 
 	path, err := ParseDerivationPath("m/44'/60'/0'/0/0")
 	if err != nil {
@@ -163,7 +166,7 @@ func TestWallet(t *testing.T) {
 
 	tx := types.NewTransaction(nonce, toAddress, value, gasLimit, gasPrice, data)
 
-	signedTx, err := wallet.SignTx(account, tx, nil, nil)
+	signedTx, err := wallet.SignTx(account, tx, nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -179,7 +182,7 @@ func TestWallet(t *testing.T) {
 		t.Error("expected s value")
 	}
 
-	signedTx2, err := wallet.SignTxWithPassphrase(account, "", tx, nil, nil)
+	signedTx2, err := wallet.SignTxWithPassphrase(account, "", tx, nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -187,7 +190,7 @@ func TestWallet(t *testing.T) {
 		t.Error("expected match")
 	}
 
-	signedTx3, err := wallet.SignTxEIP155(account, tx, big.NewInt(42), big.NewInt(10))
+	signedTx3, err := wallet.SignTxEIP155(account, tx, big.NewInt(41))
 	if err != nil {
 		t.Error(err)
 	}
