@@ -111,7 +111,7 @@ func main() {
 ## CLI
 
 ```bash
-go get -u github.com/miguelmota/go-ethereum-hdwallet/cmd/geth-hdwallet
+go install github.com/miguelmota/go-ethereum-hdwallet/cmd/geth-hdwallet@latest
 ```
 
 ```bash
