@@ -60,7 +60,7 @@ func newWallet(seed []byte) (*Wallet, error) {
 }
 
 // NewFromMnemonic returns a new wallet from a BIP-39 mnemonic.
-func NewFromMnemonic(mnemonic string) (*Wallet, error) {
+func NewFromMnemonic(mnemonic string, pwd ...string) (*Wallet, error) {
 	if mnemonic == "" {
 		return nil, errors.New("mnemonic is required")
 	}
@@ -69,7 +69,11 @@ func NewFromMnemonic(mnemonic string) (*Wallet, error) {
 		return nil, errors.New("mnemonic is invalid")
 	}
 
-	seed, err := NewSeedFromMnemonic(mnemonic)
+	password := ""
+	if len(pwd) > 0 {
+		password = pwd[0]
+	}
+	seed, err := NewSeedFromMnemonic(mnemonic, password)
 	if err != nil {
 		return nil, err
 	}
@@ -282,7 +286,7 @@ func (w *Wallet) SignTx(account accounts.Account, tx *types.Transaction, chainID
 
 	signer := types.LatestSignerForChainID(chainID)
 
-  // Sign the transaction and verify the sender to avoid hardware fault surprises
+	// Sign the transaction and verify the sender to avoid hardware fault surprises
 	signedTx, err := types.SignTx(tx, signer, privateKey)
 	if err != nil {
 		return nil, err
@@ -492,12 +496,17 @@ func NewSeed() ([]byte, error) {
 }
 
 // NewSeedFromMnemonic returns a BIP-39 seed based on a BIP-39 mnemonic.
-func NewSeedFromMnemonic(mnemonic string) ([]byte, error) {
+func NewSeedFromMnemonic(mnemonic string, pwd ...string) ([]byte, error) {
 	if mnemonic == "" {
 		return nil, errors.New("mnemonic is required")
 	}
 
-	return bip39.NewSeedWithErrorChecking(mnemonic, "")
+	password := ""
+	if len(pwd) > 0 {
+		password = pwd[0]
+	}
+
+	return bip39.NewSeedWithErrorChecking(mnemonic, password)
 }
 
 // DerivePrivateKey derives the private key of the derivation path.
