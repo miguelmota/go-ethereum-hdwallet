@@ -36,6 +36,9 @@ func TestIssue172(t *testing.T) {
 
 	// Derive the old (wrong way)
 	account, err := getWallet().Derive(path, false)
+	if err != nil {
+		t.Error(err)
+	}
 
 	if account.Address.Hex() != "0x3943412CBEEEd4b68d73382b136F36b0CB82F481" {
 		t.Error("wrong address")
@@ -44,6 +47,10 @@ func TestIssue172(t *testing.T) {
 	// Set envar to non-zero length to derive correctly
 	os.Setenv(issue179FixEnvar, "1")
 	account, err = getWallet().Derive(path, false)
+	if err != nil {
+		t.Error(err)
+	}
+
 	if account.Address.Hex() != "0x98e440675eFF3041D20bECb7fE7e81746A431b6d" {
 		t.Error("wrong address")
 	}
@@ -53,6 +60,9 @@ func TestIssue172(t *testing.T) {
 	wallet := getWallet()
 	wallet.SetFixIssue172(true)
 	account, err = wallet.Derive(path, false)
+	if err != nil {
+		t.Error(err)
+	}
 
 	if account.Address.Hex() != "0x98e440675eFF3041D20bECb7fE7e81746A431b6d" {
 		t.Error("wrong address")
@@ -325,11 +335,35 @@ func TestWallet(t *testing.T) {
 	}
 
 	mnemonic, err = NewMnemonicFromEntropy(entropy)
+	_ = mnemonic
+
 	if err != nil {
 		t.Error(err)
 	}
 
 	if len(words) != 12 {
 		t.Error("expected 12 words")
+	}
+}
+
+func TestWalletWithPassword(t *testing.T) {
+	mnemonic := "tag volcano eight thank tide danger coast health above argue embrace heavy"
+	wallet, err := NewFromMnemonic(mnemonic, "mysecret")
+	if err != nil {
+		t.Error(err)
+	}
+
+	path, err := ParseDerivationPath("m/44'/60'/0'/0/0")
+	if err != nil {
+		t.Error(err)
+	}
+
+	account, err := wallet.Derive(path, false)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if account.Address.Hex() != "0x2C0572B541D72F7078A28597fE8b1997437E885a" {
+		t.Error("wrong address")
 	}
 }
