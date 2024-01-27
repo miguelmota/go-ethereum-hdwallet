@@ -6,9 +6,11 @@ package wire
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"strconv"
+	"strings"
 
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 )
@@ -96,17 +98,18 @@ const (
 
 	// maxWitnessItemsPerInput is the maximum number of witness items to
 	// be read for the witness data for a single TxIn. This number is
-	// derived using a possble lower bound for the encoding of a witness
+	// derived using a possible lower bound for the encoding of a witness
 	// item: 1 byte for length + 1 byte for the witness item itself, or two
 	// bytes. This value is then divided by the currently allowed maximum
-	// "cost" for a transaction.
-	maxWitnessItemsPerInput = 500000
+	// "cost" for a transaction. We use this for an upper bound for the
+	// buffer and consensus makes sure that the weight of a transaction
+	// cannot be more than 4000000.
+	maxWitnessItemsPerInput = 4_000_000
 
 	// maxWitnessItemSize is the maximum allowed size for an item within
-	// an input's witness data. This number is derived from the fact that
-	// for script validation, each pushed item onto the stack must be less
-	// than 10k bytes.
-	maxWitnessItemSize = 11000
+	// an input's witness data. This value is bounded by the largest
+	// possible block size, post segwit v1 (taproot).
+	maxWitnessItemSize = 4_000_000
 )
 
 // TxFlagMarker is the first byte of the FLAG field in a bitcoin tx
@@ -114,16 +117,18 @@ const (
 // transaction from one that would require a different parsing logic.
 //
 // Position of FLAG in a bitcoin tx message:
-//   ┌─────────┬────────────────────┬─────────────┬─────┐
-//   │ VERSION │ FLAG               │ TX-IN-COUNT │ ... │
-//   │ 4 bytes │ 2 bytes (optional) │ varint      │     │
-//   └─────────┴────────────────────┴─────────────┴─────┘
+//
+//	┌─────────┬────────────────────┬─────────────┬─────┐
+//	│ VERSION │ FLAG               │ TX-IN-COUNT │ ... │
+//	│ 4 bytes │ 2 bytes (optional) │ varint      │     │
+//	└─────────┴────────────────────┴─────────────┴─────┘
 //
 // Zooming into the FLAG field:
-//   ┌── FLAG ─────────────┬────────┐
-//   │ TxFlagMarker (0x00) │ TxFlag │
-//   │ 1 byte              │ 1 byte │
-//   └─────────────────────┴────────┘
+//
+//	┌── FLAG ─────────────┬────────┐
+//	│ TxFlagMarker (0x00) │ TxFlag │
+//	│ 1 byte              │ 1 byte │
+//	└─────────────────────┴────────┘
 const TxFlagMarker = 0x00
 
 // TxFlag is the second byte of the FLAG field in a bitcoin tx message.
@@ -215,6 +220,29 @@ func NewOutPoint(hash *chainhash.Hash, index uint32) *OutPoint {
 	}
 }
 
+// NewOutPointFromString returns a new bitcoin transaction outpoint parsed from
+// the provided string, which should be in the format "hash:index".
+func NewOutPointFromString(outpoint string) (*OutPoint, error) {
+	parts := strings.Split(outpoint, ":")
+	if len(parts) != 2 {
+		return nil, errors.New("outpoint should be of the form txid:index")
+	}
+	hash, err := chainhash.NewHashFromStr(parts[0])
+	if err != nil {
+		return nil, err
+	}
+
+	outputIndex, err := strconv.ParseUint(parts[1], 10, 32)
+	if err != nil {
+		return nil, fmt.Errorf("invalid output index: %v", err)
+	}
+
+	return &OutPoint{
+		Hash:  *hash,
+		Index: uint32(outputIndex),
+	}, nil
+}
+
 // String returns the OutPoint in the human-readable form "hash:index".
 func (o OutPoint) String() string {
 	// Allocate enough for hash string, colon, and 10 digits.  Although
@@ -264,7 +292,7 @@ func NewTxIn(prevOut *OutPoint, signatureScript []byte, witness [][]byte) *TxIn 
 // a slice of byte slices, or a stack with one or many elements.
 type TxWitness [][]byte
 
-// SerializeSize returns the number of bytes it would take to serialize the the
+// SerializeSize returns the number of bytes it would take to serialize the
 // transaction input's witness.
 func (t TxWitness) SerializeSize() int {
 	// A varint to signal the number of elements the witness has.
@@ -550,7 +578,7 @@ func (msg *MsgTx) BtcDecode(r io.Reader, pver uint32, enc MessageEncoding) error
 		// and needs to be returned to the pool on error.
 		to := &txOuts[i]
 		msg.TxOut[i] = to
-		err = readTxOut(r, pver, msg.Version, to)
+		err = ReadTxOut(r, pver, msg.Version, to)
 		if err != nil {
 			returnScriptBuffers()
 			return err
@@ -586,8 +614,9 @@ func (msg *MsgTx) BtcDecode(r io.Reader, pver uint32, enc MessageEncoding) error
 			// item itself.
 			txin.Witness = make([][]byte, witCount)
 			for j := uint64(0); j < witCount; j++ {
-				txin.Witness[j], err = readScript(r, pver,
-					maxWitnessItemSize, "script witness item")
+				txin.Witness[j], err = readScript(
+					r, pver, maxWitnessItemSize, "script witness item",
+				)
 				if err != nil {
 					returnScriptBuffers()
 					return err
@@ -930,9 +959,9 @@ func readOutPoint(r io.Reader, pver uint32, version int32, op *OutPoint) error {
 	return err
 }
 
-// writeOutPoint encodes op to the bitcoin protocol encoding for an OutPoint
+// WriteOutPoint encodes op to the bitcoin protocol encoding for an OutPoint
 // to w.
-func writeOutPoint(w io.Writer, pver uint32, version int32, op *OutPoint) error {
+func WriteOutPoint(w io.Writer, pver uint32, version int32, op *OutPoint) error {
 	_, err := w.Write(op.Hash[:])
 	if err != nil {
 		return err
@@ -992,7 +1021,7 @@ func readTxIn(r io.Reader, pver uint32, version int32, ti *TxIn) error {
 // writeTxIn encodes ti to the bitcoin protocol encoding for a transaction
 // input (TxIn) to w.
 func writeTxIn(w io.Writer, pver uint32, version int32, ti *TxIn) error {
-	err := writeOutPoint(w, pver, version, &ti.PreviousOutPoint)
+	err := WriteOutPoint(w, pver, version, &ti.PreviousOutPoint)
 	if err != nil {
 		return err
 	}
@@ -1005,9 +1034,9 @@ func writeTxIn(w io.Writer, pver uint32, version int32, ti *TxIn) error {
 	return binarySerializer.PutUint32(w, littleEndian, ti.Sequence)
 }
 
-// readTxOut reads the next sequence of bytes from r as a transaction output
+// ReadTxOut reads the next sequence of bytes from r as a transaction output
 // (TxOut).
-func readTxOut(r io.Reader, pver uint32, version int32, to *TxOut) error {
+func ReadTxOut(r io.Reader, pver uint32, version int32, to *TxOut) error {
 	err := readElement(r, &to.Value)
 	if err != nil {
 		return err
