@@ -1,4 +1,4 @@
-module github.com/openweb3/go-ethereum-hdwallet.git
+module github.com/openweb3/go-ethereum-hdwallet
 
 go 1.18
 
