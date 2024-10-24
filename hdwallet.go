@@ -229,7 +229,7 @@ func (w *Wallet) SignHash(account accounts.Account, hash []byte) ([]byte, error)
 	return crypto.Sign(hash, privateKey)
 }
 
-// SignTxEIP155 implements accounts.Wallet, which allows the account to sign an ERC-20 transaction.
+// SignTxCustomSigner implements accounts.Wallet, which allows the account to sign an ERC-20 transaction using a custom signer.
 func (w *Wallet) SignTxCustomSigner(account accounts.Account, tx *types.Transaction, signer types.Signer) (*types.Transaction, error) {
 	w.stateLock.RLock() // Comms have own mutex, this is for the state fields
 	defer w.stateLock.RUnlock()
@@ -263,6 +263,8 @@ func (w *Wallet) SignTxCustomSigner(account accounts.Account, tx *types.Transact
 	return signedTx, nil
 }
 
+// SignTxEIP1559 uses the London Signer which supports
+// EIP-1559 dynamic fee, EIP-2930 access list, EIP-155 replay protected, and legacy Homestead Transactions
 func (w *Wallet) SignTxEIP1559(account accounts.Account, tx *types.Transaction, chainID *big.Int) (*types.Transaction, error) {
 	return w.SignTxCustomSigner(account, tx, types.NewLondonSigner(chainID))
 }
