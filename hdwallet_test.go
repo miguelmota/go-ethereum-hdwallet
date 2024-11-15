@@ -1,6 +1,10 @@
 package hdwallet
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"fmt"
+	"github.com/tyler-smith/go-bip39"
 	"math/big"
 	"os"
 	"strings"
@@ -365,5 +369,33 @@ func TestWalletWithPassword(t *testing.T) {
 
 	if account.Address.Hex() != "0x2C0572B541D72F7078A28597fE8b1997437E885a" {
 		t.Error("wrong address")
+	}
+}
+
+// see: https://github.com/ethereum/go-ethereum/blob/master/crypto/signature_nocgo.go#L82
+func TestCurve(t *testing.T) {
+	entropy, _ := bip39.NewEntropy(256)
+	mnemonic, _ := bip39.NewMnemonic(entropy)
+	hd, _ := NewFromMnemonic(mnemonic)
+	path := MustParseDerivationPath(fmt.Sprintf("m/44'/60'/0'/0/%d", 0))
+	account, _ := hd.Derive(path, false)
+	privateKey, _ := hd.PrivateKey(account)
+	if privateKey.Curve != crypto.S256() {
+		panic(fmt.Errorf("private key curve is not secp256k1 : %v(%v)", getCurveName(privateKey), privateKey.Curve))
+	}
+}
+
+func getCurveName(privateKey *ecdsa.PrivateKey) string {
+	switch privateKey.Curve {
+	case elliptic.P256():
+		return "P256 (secp256r1)"
+	case elliptic.P384():
+		return "P384 (secp384r1)"
+	case elliptic.P521():
+		return "P521 (secp521r1)"
+	case crypto.S256():
+		return "secp256k1"
+	default:
+		return "Unknown Curve"
 	}
 }
