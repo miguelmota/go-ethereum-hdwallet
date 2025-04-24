@@ -7,7 +7,7 @@ install:
 
 .PHONY: build
 build:
-	@go build . -o bin/hdwallet
+	@go build -o ./bin/geth-hdwallet ./cmd/geth-hdwallet
 
 .PHONY: test
 test:
