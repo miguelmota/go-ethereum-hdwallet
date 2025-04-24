@@ -1,5 +1,6 @@
 .DS_Store
 dist
 build
+bin
 node_modules
 vendor/github.com/ethereum/go-ethereum
