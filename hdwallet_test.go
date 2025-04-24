@@ -367,3 +367,126 @@ func TestWalletWithPassword(t *testing.T) {
 		t.Error("wrong address")
 	}
 }
+
+func TestTransactionSigning(t *testing.T) {
+	mnemonic := "tag volcano eight thank tide danger coast health above argue embrace heavy"
+	wallet, err := NewFromMnemonic(mnemonic)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	path := MustParseDerivationPath("m/44'/60'/0'/0/0")
+	account, err := wallet.Derive(path, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Test transaction data
+	chainID := big.NewInt(1) // mainnet
+	nonce := uint64(0)
+	to := common.HexToAddress("0x742d35Cc6634C0532925a3b844Bc454e4438f44e")
+	value := big.NewInt(1000000000000000000) // 1 ETH
+	gasLimit := uint64(21000)
+	gasPrice := big.NewInt(20000000000)  // 20 Gwei
+	gasTipCap := big.NewInt(2000000000)  // 2 Gwei
+	gasFeeCap := big.NewInt(25000000000) // 25 Gwei
+
+	// Create a legacy transaction to be used in tests
+	legacyTx := types.NewTransaction(nonce, to, value, gasLimit, gasPrice, nil)
+
+	// Test error cases first
+	t.Run("Error Cases", func(t *testing.T) {
+		// Test with invalid account
+		invalidAccount := accounts.Account{Address: common.HexToAddress("0x0000000000000000000000000000000000000000")}
+		_, err = wallet.SignTxWithSigner(invalidAccount, legacyTx, types.NewEIP155Signer(chainID))
+		if err != accounts.ErrUnknownAccount {
+			t.Errorf("expected ErrUnknownAccount, got %v", err)
+		}
+
+		// Test with nil transaction
+		_, err = wallet.SignTxWithSigner(account, nil, types.NewEIP155Signer(chainID))
+		if err == nil {
+			t.Error("expected error with nil transaction, got nil")
+		}
+
+		// Test with nil chainID
+		_, err = wallet.SignTx(account, legacyTx, nil)
+		if err != nil {
+			t.Errorf("expected no error with nil chainID for legacy tx, got %v", err)
+		}
+	})
+
+	// Test legacy transaction signing
+	t.Run("Legacy Transaction", func(t *testing.T) {
+		signer := types.NewEIP155Signer(chainID)
+		signedTx, err := wallet.SignTxWithSigner(account, legacyTx, signer)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		sender, err := types.Sender(signer, signedTx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if sender != account.Address {
+			t.Errorf("wrong sender address: got %v, want %v", sender.Hex(), account.Address.Hex())
+		}
+	})
+
+	// Test EIP-155 transaction signing
+	t.Run("EIP-155 Transaction", func(t *testing.T) {
+		signedTx, err := wallet.SignTxEIP155(account, legacyTx, chainID)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		sender, err := types.Sender(types.NewEIP155Signer(chainID), signedTx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if sender != account.Address {
+			t.Errorf("wrong sender address: got %v, want %v", sender.Hex(), account.Address.Hex())
+		}
+	})
+
+	// Test EIP-1559 transaction signing
+	t.Run("EIP-1559 Transaction", func(t *testing.T) {
+		eip1559Tx := types.NewTx(&types.DynamicFeeTx{
+			ChainID:   chainID,
+			Nonce:     nonce,
+			GasTipCap: gasTipCap,
+			GasFeeCap: gasFeeCap,
+			Gas:       gasLimit,
+			To:        &to,
+			Value:     value,
+			Data:      nil,
+		})
+
+		signedTx, err := wallet.SignTxEIP1559(account, eip1559Tx, chainID)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		sender, err := types.Sender(types.NewLondonSigner(chainID), signedTx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if sender != account.Address {
+			t.Errorf("wrong sender address: got %v, want %v", sender.Hex(), account.Address.Hex())
+		}
+
+		// Test with latest signer
+		signedLatest, err := wallet.SignTx(account, eip1559Tx, chainID)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		sender, err = types.Sender(types.LatestSignerForChainID(chainID), signedLatest)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if sender != account.Address {
+			t.Errorf("wrong sender address: got %v, want %v", sender.Hex(), account.Address.Hex())
+		}
+	})
+}
