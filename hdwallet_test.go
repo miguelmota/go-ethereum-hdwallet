@@ -1,6 +1,9 @@
 package hdwallet
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"fmt"
 	"math/big"
 	"os"
 	"strings"
@@ -11,6 +14,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/tyler-smith/go-bip39"
 )
 
 // TODO: table test
@@ -489,4 +493,175 @@ func TestTransactionSigning(t *testing.T) {
 			t.Errorf("wrong sender address: got %v, want %v", sender.Hex(), account.Address.Hex())
 		}
 	})
+}
+
+func TestCurve(t *testing.T) {
+	t.Run("Private Key Curve", func(t *testing.T) {
+		entropy, err := bip39.NewEntropy(256)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		mnemonic, err := bip39.NewMnemonic(entropy)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		hd, err := NewFromMnemonic(mnemonic)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		path := MustParseDerivationPath(fmt.Sprintf("m/44'/60'/0'/0/%d", 0))
+		account, err := hd.Derive(path, false)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		privateKey, err := hd.PrivateKey(account)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		// Verify curve type
+		if privateKey.Curve != crypto.S256() {
+			t.Errorf("wrong curve: got %s, want secp256k1", getCurveName(privateKey))
+		}
+
+		// Verify curve parameters match secp256k1
+		s256 := crypto.S256()
+		curve := privateKey.Curve
+		if curve.Params().P.Cmp(s256.Params().P) != 0 {
+			t.Error("wrong curve P parameter")
+		}
+		if curve.Params().N.Cmp(s256.Params().N) != 0 {
+			t.Error("wrong curve N parameter")
+		}
+		if curve.Params().B.Cmp(s256.Params().B) != 0 {
+			t.Error("wrong curve B parameter")
+		}
+		if curve.Params().Gx.Cmp(s256.Params().Gx) != 0 {
+			t.Error("wrong curve Gx parameter")
+		}
+		if curve.Params().Gy.Cmp(s256.Params().Gy) != 0 {
+			t.Error("wrong curve Gy parameter")
+		}
+		if curve.Params().BitSize != s256.Params().BitSize {
+			t.Error("wrong curve BitSize parameter")
+		}
+	})
+
+	t.Run("Public Key Curve", func(t *testing.T) {
+		entropy, err := bip39.NewEntropy(256)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		mnemonic, err := bip39.NewMnemonic(entropy)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		hd, err := NewFromMnemonic(mnemonic)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		path := MustParseDerivationPath(fmt.Sprintf("m/44'/60'/0'/0/%d", 0))
+		account, err := hd.Derive(path, false)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		publicKey, err := hd.PublicKey(account)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		// Verify curve type
+		if publicKey.Curve != crypto.S256() {
+			t.Errorf("wrong curve: got %s, want secp256k1", getCurveName(&ecdsa.PrivateKey{PublicKey: *publicKey}))
+		}
+
+		// Verify the public key is on the curve
+		if !crypto.S256().IsOnCurve(publicKey.X, publicKey.Y) {
+			t.Error("public key point is not on secp256k1 curve")
+		}
+	})
+
+	t.Run("Multiple Derivation Paths", func(t *testing.T) {
+		entropy, _ := bip39.NewEntropy(256)
+		mnemonic, _ := bip39.NewMnemonic(entropy)
+		hd, _ := NewFromMnemonic(mnemonic)
+
+		paths := []string{
+			"m/44'/60'/0'/0/0",
+			"m/44'/60'/0'/0/1",
+			"m/44'/60'/1'/0/0",
+			"m/44'/60'/1'/1/0",
+		}
+
+		for _, pathStr := range paths {
+			t.Run(pathStr, func(t *testing.T) {
+				path := MustParseDerivationPath(pathStr)
+				account, err := hd.Derive(path, false)
+				if err != nil {
+					t.Fatal(err)
+				}
+
+				privateKey, err := hd.PrivateKey(account)
+				if err != nil {
+					t.Fatal(err)
+				}
+
+				if privateKey.Curve != crypto.S256() {
+					t.Errorf("wrong curve for path %s: got %s, want secp256k1",
+						pathStr, getCurveName(privateKey))
+				}
+
+				// Verify key generation and signing
+				msg := []byte("test message")
+				hash := crypto.Keccak256(msg)
+				sig, err := crypto.Sign(hash, privateKey)
+				if err != nil {
+					t.Fatalf("failed to sign message: %v", err)
+				}
+
+				// Verify signature
+				pubKey, err := crypto.SigToPub(hash, sig)
+				if err != nil {
+					t.Fatalf("failed to recover public key: %v", err)
+				}
+
+				addr := crypto.PubkeyToAddress(*privateKey.Public().(*ecdsa.PublicKey))
+				recoveredAddr := crypto.PubkeyToAddress(*pubKey)
+				if addr != recoveredAddr {
+					t.Errorf("recovered wrong address: got %x, want %x", recoveredAddr, addr)
+				}
+			})
+		}
+	})
+}
+
+func getCurveName(privateKey *ecdsa.PrivateKey) string {
+	if privateKey == nil || privateKey.Curve == nil {
+		return "nil curve"
+	}
+
+	switch privateKey.Curve {
+	case elliptic.P256():
+		return "P256 (secp256r1)"
+	case elliptic.P384():
+		return "P384 (secp384r1)"
+	case elliptic.P521():
+		return "P521 (secp521r1)"
+	case crypto.S256():
+		return "secp256k1"
+	default:
+		params := privateKey.Curve.Params()
+		if params == nil {
+			return "unknown curve with nil params"
+		}
+		return fmt.Sprintf("unknown curve: %s", params.Name)
+	}
 }

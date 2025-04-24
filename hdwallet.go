@@ -507,10 +507,19 @@ func (w *Wallet) derivePrivateKey(path accounts.DerivationPath) (*ecdsa.PrivateK
 	}
 
 	privateKey, err := key.ECPrivKey()
-	privateKeyECDSA := privateKey.ToECDSA()
 	if err != nil {
 		return nil, err
 	}
+
+	// Create a new private key using secp256k1 as in go-ethereum's implementation
+	// https://github.com/ethereum/go-ethereum/blob/b62756d1a3b8b09430f5b060caa7382c8117fb90/crypto/signature_nocgo.go#L82
+	privateKeyECDSA := &ecdsa.PrivateKey{
+		PublicKey: ecdsa.PublicKey{
+			Curve: crypto.S256(),
+		},
+		D: privateKey.ToECDSA().D,
+	}
+	privateKeyECDSA.PublicKey.X, privateKeyECDSA.PublicKey.Y = privateKeyECDSA.PublicKey.Curve.ScalarBaseMult(privateKeyECDSA.D.Bytes())
 
 	return privateKeyECDSA, nil
 }
