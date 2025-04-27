@@ -135,12 +135,26 @@ Format code:
 make format
 ```
 
-## Test
+### Test
 
-Run tests
+Run tests:
 
 ```bash
 make test
+```
+
+### Release
+
+Git tag after committing latest changes:
+
+```bash
+git tag v0.1.x
+```
+
+Create a release with [goreleaser](https://github.com/goreleaser/goreleaser):
+
+```bash
+make release
 ```
 
 ## Contributing
