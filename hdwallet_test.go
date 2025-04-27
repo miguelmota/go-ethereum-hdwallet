@@ -665,3 +665,154 @@ func getCurveName(privateKey *ecdsa.PrivateKey) string {
 		return fmt.Sprintf("unknown curve: %s", params.Name)
 	}
 }
+
+func TestWallet_Derive(t *testing.T) {
+	mnemonic := "tag volcano eight thank tide danger coast health above argue embrace heavy"
+	wallet, err := NewFromMnemonic(mnemonic)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	type testVector struct {
+		path       string
+		address    string
+		privateKey string
+		publicKey  string
+	}
+
+	vectors := []testVector{
+		{
+			path:       "m/44'/60'/0'/0/0",
+			address:    "0xC49926C4124cEe1cbA0Ea94Ea31a6c12318df947",
+			privateKey: "63e21d10fd50155dbba0e7d3f7431a400b84b4c2ac1ee38872f82448fe3ecfb9",
+			publicKey:  "6005c86a6718f66221713a77073c41291cc3abbfcd03aa4955e9b2b50dbf7f9b6672dad0d46ade61e382f79888a73ea7899d9419becf1d6c9ec2087c1188fa18",
+		},
+		{
+			path:       "m/44'/60'/0'/0/1",
+			address:    "0x8230645aC28A4EdD1b0B53E7Cd8019744E9dD559",
+			privateKey: "b31048b0aa87649bdb9016c0ee28c788ddfc45e52cd71cc0da08c47cb4390ae7",
+			publicKey:  "3bea344870200a06bfad8f27ceb9f81746e1c659d6c6dd427a7b9b424e224f28678255be048453fe4dc37ad1c7e1b28e46c9e5e78f0ab19f2aefd69e15c83562",
+		},
+		{
+			path:       "m/44'/60'/0'/0/2",
+			address:    "0x65c150B7EF3B1ADbb9cB2b8041C892b15eddE05a",
+			privateKey: "d5c561f92921a5d7eb8a91cc81cb392d1877dcc6b856260c1676cb28ef7203b0",
+			publicKey:  "b97419271c674a1e593e6cc312bf5bbbd98cc8b6f89f9aeb41449d06931029a2ac0bce9e527b9a316bb1f6866d1dca6e2c2d1ceff29342ac7ac80a3bde190c56",
+		},
+		{
+			path:       "m/44'/60'/0'/0/3",
+			address:    "0x1aEBBe69459b80D4975259378577Bc01D2924Cf4",
+			privateKey: "f466f6f4d2d61a11eddd10eb80aae500c7601539d08d1d55f9e5efe25ecf95bc",
+			publicKey:  "dac726c391d6990b1c64218cf05107e7893d744ef174b36ebc3df7c469fcabf8864d3bcce7dde972f256bb9d608074eaba762837212294b6196b327823f90980",
+		},
+		{
+			path:       "m/44'/60'/0'/0/4",
+			address:    "0x32f48bf54DBbFcE73172E69fE563C130D536cd5F",
+			privateKey: "103a9ef39d4ced2988f1d5084460ebf8ea3baea2b2ca78265b637e48d99dce82",
+			publicKey:  "bf26f8038c5a9026ba68d9a19593e94db2d8ecd4ca1451e6022787751c8615f91b24d0ac7dd61a01ee4c65ba609742e17d58b7943e90b280feefdebb8fcac9cd",
+		},
+		{
+			path:       "m/44'/60'/0'/0/5",
+			address:    "0x1C255dB352E8b3cc16efD721C61D7b1B5952b2BB",
+			privateKey: "1a69b812ca32e38bcac5197a63f6c1a1fcb6ac202e524382565cef16f1b3c84c",
+			publicKey:  "974dc5809c2c7ef5739ee1f0abbac7d9a2333f965671f8b1c459ee4ce1c5d6672f2226267c0b7d22ef4ab8a8c94847a2dd703ec4bb48c0a824eb76d750ad522f",
+		},
+		{
+			path:       "m/44'/60'/0'/0/6",
+			address:    "0x1A41029AeB54a8C09211539B92b2a3fd92EA8270",
+			privateKey: "83d5a75675cc8f1be09c7d4189117fe33ee3f09d1f9b5783140f03016a35b132",
+			publicKey:  "a5927f446136d57dc3ae1b35617633c80bd23f5fe6625ead93c949382c63cc2ca5476c6ae74df49bc3bb64481174ea4dde2e5bb646ace409e7ebf863be7b0645",
+		},
+		{
+			path:       "m/44'/60'/0'/0/7",
+			address:    "0x54C0897a1E281b107eEE25D4F8eEe5f6ae13F9D9",
+			privateKey: "526db1890baf94e82162f17f25ad769eb7f981272d8d99c527ea1af443c2d0cc",
+			publicKey:  "c1827492fda9b42852d2aa5745c6bbb76bad233c089a6429f53af4325d1a80429c8fb13cd3b177df2334d2804b8bdc05f40e2fa2c1ae6aaae8ca3456a23f2b8e",
+		},
+		{
+			path:       "m/44'/60'/0'/0/8",
+			address:    "0x3D503E7C3799AB9478b6C04623275fdC0Ad09b1E",
+			privateKey: "cae7ce30e8e07507988d43ad8907edea2fd23f848fb1b8522dee53cac43a825f",
+			publicKey:  "173385c77cc2812f4bec788db897850abd9869b900b1765266206229093b44d7f37796d4babc69dc777864e17a261b4a6bf05f6ac093904098471904c6c65f71",
+		},
+		{
+			path:       "m/44'/60'/0'/0/9",
+			address:    "0x2D69B45301b9B3E01c4797c7a48BBc7e7F9b355b",
+			privateKey: "7525a4c5f03fb0b22fd88862e23833d62719b609e32a9264f6e437d56520d375",
+			publicKey:  "59e5bfc671e89b9b48e334a015a0cfad6245358a532c7dea6305a7f2e98bde46fd7593623de0ca138e9ff970224135fd413aa39e4fb98daedfb643191c109158",
+		},
+		{
+			path:       "m/44'/60'/0'/0/10",
+			address:    "0x5E611CBdd26F78a4c837759378a7B41cAa17B41b",
+			privateKey: "9974334c5b8fc190302e93bc0e233709192f89fb2a7eeaf1d2f877cd3ae24262",
+			publicKey:  "4a7d794435c42542438a4f5d065630f1c86374dd10f67d9fa4263644a13ab56a401460ccea4f829ba01ed188af3bbfbc530195bd6c542f3a496e224dc73c4f36",
+		},
+	}
+
+	for _, vector := range vectors {
+		t.Run(vector.path, func(t *testing.T) {
+			path, err := ParseDerivationPath(vector.path)
+			if err != nil {
+				t.Fatalf("failed to parse path %s: %v", vector.path, err)
+			}
+
+			// Derive the account
+			account, err := wallet.Derive(path, false)
+			if err != nil {
+				t.Fatalf("failed to derive path %s: %v", vector.path, err)
+			}
+
+			// Check address (using checksummed addresses)
+			expectedAddr := common.HexToAddress(vector.address)
+			if account.Address.Hex() != expectedAddr.Hex() {
+				t.Errorf("wrong address for path %s: got %s, want %s",
+					vector.path, account.Address.Hex(), expectedAddr.Hex())
+			}
+
+			// Check private key
+			privateKey, err := wallet.PrivateKeyHex(account)
+			if err != nil {
+				t.Fatalf("failed to get private key for path %s: %v", vector.path, err)
+			}
+			if privateKey != vector.privateKey {
+				t.Errorf("wrong private key for path %s: got %s, want %s",
+					vector.path, privateKey, vector.privateKey)
+			}
+
+			// Check public key
+			publicKey, err := wallet.PublicKeyHex(account)
+			if err != nil {
+				t.Fatalf("failed to get public key for path %s: %v", vector.path, err)
+			}
+			if publicKey != vector.publicKey {
+				t.Errorf("wrong public key for path %s: got %s, want %s",
+					vector.path, publicKey, vector.publicKey)
+			}
+
+			// Verify the private key can sign and recover correctly
+			privateKeyECDSA, err := wallet.PrivateKey(account)
+			if err != nil {
+				t.Fatalf("failed to get ECDSA private key for path %s: %v", vector.path, err)
+			}
+
+			msg := []byte("test message")
+			hash := crypto.Keccak256(msg)
+			sig, err := crypto.Sign(hash, privateKeyECDSA)
+			if err != nil {
+				t.Fatalf("failed to sign message for path %s: %v", vector.path, err)
+			}
+
+			// Verify signature
+			recoveredPub, err := crypto.SigToPub(hash, sig)
+			if err != nil {
+				t.Fatalf("failed to recover public key for path %s: %v", vector.path, err)
+			}
+
+			recoveredAddr := crypto.PubkeyToAddress(*recoveredPub)
+			if recoveredAddr != account.Address {
+				t.Errorf("recovered wrong address for path %s: got %x, want %x",
+					vector.path, recoveredAddr, account.Address)
+			}
+		})
+	}
+}
