@@ -491,6 +491,11 @@ func NewSeedFromMnemonic(mnemonic string, passOpt ...string) ([]byte, error) {
 	return bip39.NewSeedWithErrorChecking(mnemonic, password)
 }
 
+// IsMnemonicValid validates a mnemonic.
+func IsMnemonicValid(mnemonic string) bool {
+	return bip39.IsMnemonicValid(mnemonic)
+}
+
 // DerivePrivateKey derives the private key of the derivation path.
 func (w *Wallet) derivePrivateKey(path accounts.DerivationPath) (*ecdsa.PrivateKey, error) {
 	var err error
